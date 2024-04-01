@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Camera Remote</string>
+
+    <string name="camera_trigger">Camera Trigger</string>
+</resources>
