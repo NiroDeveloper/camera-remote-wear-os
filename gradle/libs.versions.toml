@@ -10,6 +10,7 @@ coreSplashscreen = "1.0.1"
 wearToolingPreview = "1.0.0"
 material3 = "1.2.1"
 kotlinxCoroutinesAndroid = "1.8.1-Beta"
+horologistComposeLayout = "0.6.6"
 
 [libraries]
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
@@ -25,6 +26,7 @@ activity-compose = { group = "androidx.activity", name = "activity-compose", ver
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
+horologist-compose-layout = { group = "com.google.android.horologist", name = "horologist-compose-layout", version.ref = "horologistComposeLayout" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

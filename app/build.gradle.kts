@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.core.splashscreen)
     implementation(libs.wear.tooling.preview)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.horologist.compose.layout)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)

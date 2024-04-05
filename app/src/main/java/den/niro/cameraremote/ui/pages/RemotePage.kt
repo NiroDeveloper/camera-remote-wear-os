@@ -1,8 +1,5 @@
-package den.niro.cameraremote.presentation
+package den.niro.cameraremote.ui.pages
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -24,28 +21,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.OutlinedButton
 import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
 import den.niro.cameraremote.R
 import den.niro.cameraremote.controller.UserInputController
-import den.niro.cameraremote.presentation.theme.CameraRemoteTheme
 import kotlin.math.roundToInt
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-
-        super.onCreate(savedInstanceState)
-
-        setContent {
-            RemoteLayout()
-        }
-    }
-}
 
 @Preview(device = WearDevices.RECT, showSystemUi = true)
 @Preview(device = WearDevices.SQUARE, showSystemUi = true)
@@ -56,6 +40,8 @@ fun RemoteLayout() {
     updateButtons()
 
     BoxWithConstraints {
+        TimeText()
+
         val horizontalPadding = (maxWidth.value * 0.1).roundToInt()
         val verticalPadding = (maxHeight.value * 0.1).roundToInt()
 
@@ -66,17 +52,15 @@ fun RemoteLayout() {
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CameraRemoteTheme {
-                TriggerButton()
+            TriggerButton()
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    DelayButton()
-                    ModeButton()
-                }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DelayButton()
+                ModeButton()
             }
         }
     }
