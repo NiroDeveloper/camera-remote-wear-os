@@ -1,5 +1,7 @@
 package den.niro.cameraremote.ui.pages
 
+import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -28,7 +30,8 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
 import den.niro.cameraremote.R
-import den.niro.cameraremote.controller.UserInputController
+import den.niro.cameraremote.bluetooth.BluetoothController
+import den.niro.cameraremote.ui.UserInputController
 import kotlin.math.roundToInt
 
 @Preview(device = WearDevices.RECT, showSystemUi = true)
@@ -36,8 +39,14 @@ import kotlin.math.roundToInt
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
-fun RemoteLayout() {
+fun RemoteLayout(permissionLauncher: ActivityResultLauncher<String>? = null) {
     updateButtons()
+
+    BluetoothController.uiConnectionUpdateListener = {
+        Log.d(null, "Updating ui because of bluetooth state change")
+
+        updateButtons()
+    }
 
     BoxWithConstraints {
         TimeText()
@@ -52,7 +61,7 @@ fun RemoteLayout() {
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TriggerButton()
+            TriggerButton(permissionLauncher)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -71,8 +80,10 @@ val timerDelayText = mutableStateOf("")
 val modeTextDecoration = mutableStateOf(TextDecoration.None)
 
 fun updateButtons() {
-    triggerButtonIcon.intValue = if (UserInputController.isAutoTriggerEnabled()) {
-        if (UserInputController.isAutoTriggerActive()) {
+    triggerButtonIcon.intValue = if (!BluetoothController.isDeviceConnected()) {
+        R.drawable.baseline_bluetooth_24
+    } else if (UserInputController.autoTriggerEnabled) {
+        if (UserInputController.autoTriggerActive) {
             R.drawable.sharp_autostop_24
         } else {
             R.drawable.sharp_autoplay_24
@@ -81,21 +92,27 @@ fun updateButtons() {
         R.drawable.baseline_linked_camera_24
     }
 
-    timerDelayText.value = "${UserInputController.getTimerDelay()}s"
+    timerDelayText.value = "${UserInputController.timerDelay}s"
 
-    modeTextDecoration.value = if (UserInputController.isAutoTriggerEnabled())
+    modeTextDecoration.value = if (UserInputController.autoTriggerEnabled)
         TextDecoration.Underline else TextDecoration.LineThrough
 }
 
 @Composable
-fun TriggerButton() {
+fun TriggerButton(permissionLauncher: ActivityResultLauncher<String>?) {
     val context = LocalContext.current
     val triggerButtonIcon by triggerButtonIcon
 
     Button(
         onClick = {
-            UserInputController.clickTrigger(context)
-            updateButtons()
+            if (BluetoothController.isDeviceConnected()) {
+                UserInputController.clickTrigger(context)
+                updateButtons()
+            } else {
+                permissionLauncher?.let {
+                    BluetoothController.handleBluetooth(context, it)
+                }
+            }
         },
         modifier = Modifier
             .width(80.dp)

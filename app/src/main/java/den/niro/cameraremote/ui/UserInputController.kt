@@ -1,6 +1,7 @@
-package den.niro.cameraremote.controller
+package den.niro.cameraremote.ui
 
 import android.content.Context
+import den.niro.cameraremote.bluetooth.BluetoothController
 import den.niro.cameraremote.utils.Vibrator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,9 +11,12 @@ import kotlinx.coroutines.launch
 
 object UserInputController {
 
-    private var timerDelay = 0
-    private var autoTriggerEnabled = false
-    private var autoTriggerActive = false
+    var timerDelay = 0
+        private set
+    var autoTriggerEnabled = false
+        private set
+    var autoTriggerActive = false
+        private set
 
     private var triggerCoroutine: Job? = null
 
@@ -53,10 +57,6 @@ object UserInputController {
         }
     }
 
-    fun getTimerDelay(): Int {
-        return timerDelay
-    }
-
     fun toggleAutoTrigger() {
         autoTriggerEnabled = !autoTriggerEnabled
         autoTriggerActive = false
@@ -66,14 +66,6 @@ object UserInputController {
         if (autoTriggerEnabled && timerDelay < 1) {
             timerDelay = 1
         }
-    }
-
-    fun isAutoTriggerEnabled(): Boolean {
-        return autoTriggerEnabled
-    }
-
-    fun isAutoTriggerActive(): Boolean {
-        return autoTriggerActive
     }
 
 }
