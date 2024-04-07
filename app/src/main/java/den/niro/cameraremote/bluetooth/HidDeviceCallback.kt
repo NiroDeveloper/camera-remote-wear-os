@@ -5,25 +5,30 @@ import android.bluetooth.BluetoothHidDevice
 import android.bluetooth.BluetoothProfile
 import android.util.Log
 
-class HidDeviceCallback(private val hidDevice: BluetoothHidDevice, val connectionStateChanged: () -> Unit, val appDisconnect: () -> Unit) :
-    BluetoothHidDevice.Callback() {
+class HidDeviceCallback(
+    private val hidDevice: BluetoothHidDevice,
+    val connectionStateChanged: () -> Unit,
+    val appStatusChanged: (Boolean) -> Unit
+) : BluetoothHidDevice.Callback() {
+
+    var appRegistered = false
+        private set
 
     val connectedDevices = mutableListOf<BluetoothDevice>()
 
     override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
         super.onAppStatusChanged(pluggedDevice, registered)
 
-        Log.i(null, "onAppStatusChanged($pluggedDevice, $registered)")
+        Log.d(null, "onAppStatusChanged($pluggedDevice, $registered)")
 
-        if (!registered) {
-            appDisconnect()
-        }
+        appRegistered = registered
+        appStatusChanged(registered)
     }
 
     override fun onConnectionStateChanged(device: BluetoothDevice?, state: Int) {
         super.onConnectionStateChanged(device, state)
 
-        Log.i(null, "onConnectionStateChanged($device, $state)")
+        Log.d(null, "onConnectionStateChanged($device, $state)")
 
         if (device != null) {
             if (state == BluetoothProfile.STATE_CONNECTED) {
@@ -39,7 +44,7 @@ class HidDeviceCallback(private val hidDevice: BluetoothHidDevice, val connectio
     override fun onGetReport(device: BluetoothDevice?, type: Byte, id: Byte, bufferSize: Int) {
         super.onGetReport(device, type, id, bufferSize)
 
-        Log.i(null, "onGetReport($device, $type, $id, $bufferSize)")
+        Log.d(null, "onGetReport($device, $type, $id, $bufferSize)")
 
         try {
             if (type == BluetoothHidDevice.REPORT_TYPE_INPUT) {
@@ -55,7 +60,7 @@ class HidDeviceCallback(private val hidDevice: BluetoothHidDevice, val connectio
     override fun onSetReport(device: BluetoothDevice?, type: Byte, id: Byte, data: ByteArray?) {
         super.onSetReport(device, type, id, data)
 
-        Log.i(null, "onSetReport($device, $type, $id, $data)")
+        Log.d(null, "onSetReport($device, $type, $id, $data)")
 
         try {
             hidDevice.reportError(device, BluetoothHidDevice.ERROR_RSP_SUCCESS)
@@ -67,19 +72,19 @@ class HidDeviceCallback(private val hidDevice: BluetoothHidDevice, val connectio
     override fun onSetProtocol(device: BluetoothDevice?, protocol: Byte) {
         super.onSetProtocol(device, protocol)
 
-        Log.i(null, "onSetProtocol($device, $protocol)")
+        Log.d(null, "onSetProtocol($device, $protocol)")
     }
 
     override fun onInterruptData(device: BluetoothDevice?, reportId: Byte, data: ByteArray?) {
         super.onInterruptData(device, reportId, data)
 
-        Log.i(null, "onInterruptData($device, $reportId, $data)")
+        Log.d(null, "onInterruptData($device, $reportId, $data)")
     }
 
     override fun onVirtualCableUnplug(device: BluetoothDevice?) {
         super.onVirtualCableUnplug(device)
 
-        Log.i(null, "onVirtualCableUnplug($device)")
+        Log.d(null, "onVirtualCableUnplug($device)")
     }
 
 }

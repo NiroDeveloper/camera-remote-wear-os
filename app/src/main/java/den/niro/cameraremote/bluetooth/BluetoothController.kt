@@ -31,8 +31,14 @@ object BluetoothController {
 
     fun handleBluetooth(context: Context, permissionLauncher: ActivityResultLauncher<String>) {
         if (BluetoothPermission.hasBluetoothPermission(context)) {
-            bluetoothCallback?.autoConnect() ?: run {
+            val localBluetoothCallback = bluetoothCallback
+            if (localBluetoothCallback == null) {
                 registerBluetoothService(context)
+                return
+            }
+
+            localBluetoothCallback.hidDevice?.let {
+                localBluetoothCallback.autoConnect(it)
             }
 
             return

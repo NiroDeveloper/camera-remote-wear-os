@@ -1,6 +1,5 @@
 package den.niro.cameraremote.bluetooth
 
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
 import android.bluetooth.BluetoothProfile
 import android.util.Log
@@ -14,7 +13,7 @@ class BluetoothServiceCallback(val connectionStateChanged: () -> Unit) : Bluetoo
         private set
 
     override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
-        Log.i(null, "onServiceConnected($profile, $proxy)")
+        Log.d(null, "onServiceConnected($profile, $proxy)")
 
         if (profile != BluetoothProfile.HID_DEVICE) {
             Log.wtf(null, "BluetoothProfile is not a HidDevice")
@@ -32,7 +31,7 @@ class BluetoothServiceCallback(val connectionStateChanged: () -> Unit) : Bluetoo
         }
 
         hidDevice = proxy
-        registerApp()
+        hidCallback = registerApp(proxy)
     }
 
     override fun onServiceDisconnected(profile: Int) {
@@ -44,45 +43,34 @@ class BluetoothServiceCallback(val connectionStateChanged: () -> Unit) : Bluetoo
         connectionStateChanged()
     }
 
-    private fun registerApp() {
-        val localHidDevice = hidDevice
-        if (localHidDevice == null) {
-            Log.w(null, "BluetoothHidDevice is not available")
-
-            return
+    private fun registerApp(registerHidDevice: BluetoothHidDevice): HidDeviceCallback {
+        val newHidCallback = HidDeviceCallback(registerHidDevice, connectionStateChanged) { registered ->
+            if (registered) {
+                autoConnect(registerHidDevice)
+            }
         }
 
         try {
-            hidCallback = HidDeviceCallback(localHidDevice, connectionStateChanged) {
-                hidCallback = null
-            }
-
-            val registerAppResponse = localHidDevice.registerApp(
+            registerHidDevice.registerApp(
                 BluetoothConstants.SPD_RECORD,
                 null,
                 BluetoothConstants.QOS_OUT,
                 { it.run() },
-                hidCallback
+                newHidCallback
             )
 
-            Log.i(null, "Called BluetoothHidDevice.registerApp and received response: $registerAppResponse")
-
-            autoConnect()
+            Log.i(null, "Called BluetoothHidDevice.registerApp")
         } catch (ex: SecurityException) {
             Log.wtf(null, "Failed app registration: $ex")
         }
+
+        return newHidCallback
     }
 
-    fun autoConnect() {
-        val localHidDevice = hidDevice
-        if (localHidDevice == null) {
-            Log.w(null, "BluetoothHidDevice is not available")
-
-            return
-        }
-
-        if (hidCallback == null) {
-            Log.e(null, "No hid callback, so the app is not registered")
+    fun autoConnect(connectHidDevice: BluetoothHidDevice) {
+        val appRegistered = hidCallback?.appRegistered ?: false
+        if (!appRegistered) {
+            Log.e(null, "Bluetooth app is not registered")
 
             return
         }
@@ -95,25 +83,10 @@ class BluetoothServiceCallback(val connectionStateChanged: () -> Unit) : Bluetoo
                 BluetoothProfile.STATE_DISCONNECTING
             )
 
-            localHidDevice.getDevicesMatchingConnectionStates(connectionStates).forEach { device ->
-                val state = when(localHidDevice.getConnectionState(device)) {
-                    BluetoothProfile.STATE_CONNECTED -> "STATE_CONNECTED"
-                    BluetoothProfile.STATE_CONNECTING -> "STATE_CONNECTING"
-                    BluetoothProfile.STATE_DISCONNECTED -> "STATE_DISCONNECTED"
-                    BluetoothProfile.STATE_DISCONNECTING -> "STATE_DISCONNECTING"
-                    else -> "STATE_UNKNOWN"
-                }
+            connectHidDevice.getDevicesMatchingConnectionStates(connectionStates).forEach { device ->
+                Log.i(null, "Connect with device: ${device.getNameWithState(connectHidDevice)}")
 
-                val bond = when(device.bondState) {
-                    BluetoothDevice.BOND_BONDED -> "BOND_BONDED"
-                    BluetoothDevice.BOND_BONDING -> "BOND_BONDING"
-                    BluetoothDevice.BOND_NONE -> "BOND_NONE"
-                    else -> "BOND_UNKNOWN"
-                }
-
-                Log.i(null, "Connect with device: ${device.name} ($state, $bond)")
-
-                localHidDevice.connect(device)
+                connectHidDevice.connect(device)
             }
         } catch (ex: SecurityException) {
             Log.wtf(null, "Failed auto connect: $ex")
