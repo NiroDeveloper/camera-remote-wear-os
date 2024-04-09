@@ -1,4 +1,4 @@
-package den.niro.cameraremote.ui.pages
+package dev.niro.cameraremote.ui.pages
 
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
@@ -29,9 +29,9 @@ import androidx.wear.compose.material.OutlinedButton
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
-import den.niro.cameraremote.R
-import den.niro.cameraremote.bluetooth.BluetoothController
-import den.niro.cameraremote.ui.UserInputController
+import dev.niro.cameraremote.R
+import dev.niro.cameraremote.bluetooth.BluetoothController
+import dev.niro.cameraremote.ui.UserInputController
 import kotlin.math.roundToInt
 
 @Preview(device = WearDevices.RECT, showSystemUi = true)

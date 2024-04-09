@@ -1,4 +1,4 @@
-package den.niro.cameraremote.utils
+package dev.niro.cameraremote.utils
 
 import android.annotation.SuppressLint
 import android.content.Context

@@ -1,4 +1,4 @@
-package den.niro.cameraremote.bluetooth
+package dev.niro.cameraremote.bluetooth
 
 import android.Manifest
 import android.content.Context

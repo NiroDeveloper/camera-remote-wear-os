@@ -1,13 +1,13 @@
-package den.niro.cameraremote.ui
+package dev.niro.cameraremote.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.google.android.horologist.compose.ambient.AmbientAware
-import den.niro.cameraremote.bluetooth.BluetoothController
-import den.niro.cameraremote.bluetooth.BluetoothPermission
-import den.niro.cameraremote.ui.pages.RemoteLayout
+import dev.niro.cameraremote.bluetooth.BluetoothController
+import dev.niro.cameraremote.bluetooth.BluetoothPermission
+import dev.niro.cameraremote.ui.pages.RemoteLayout
 import kotlinx.coroutines.DelicateCoroutinesApi
 
 class MainActivity : ComponentActivity() {

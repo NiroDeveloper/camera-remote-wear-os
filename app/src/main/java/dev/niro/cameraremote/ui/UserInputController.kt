@@ -1,8 +1,8 @@
-package den.niro.cameraremote.ui
+package dev.niro.cameraremote.ui
 
 import android.content.Context
-import den.niro.cameraremote.bluetooth.BluetoothController
-import den.niro.cameraremote.utils.Vibrator
+import dev.niro.cameraremote.bluetooth.BluetoothController
+import dev.niro.cameraremote.utils.Vibrator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

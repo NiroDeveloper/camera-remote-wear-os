@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "den.niro.cameraremote"
+    namespace = "dev.niro.cameraremote"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "den.niro.cameraremote"
+        applicationId = "dev.niro.cameraremote"
         minSdk = 28
         targetSdk = 34
         versionCode = 1
