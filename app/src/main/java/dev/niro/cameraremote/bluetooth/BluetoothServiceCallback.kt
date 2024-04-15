@@ -51,15 +51,15 @@ class BluetoothServiceCallback(val connectionStateChanged: () -> Unit) : Bluetoo
         }
 
         try {
-            registerHidDevice.registerApp(
+            val result = registerHidDevice.registerApp(
                 BluetoothConstants.SPD_RECORD,
                 null,
                 BluetoothConstants.QOS_OUT,
-                { it.run() },
+                Runnable::run,
                 newHidCallback
             )
 
-            Log.i(null, "Called BluetoothHidDevice.registerApp")
+            Log.i(null, "Called BluetoothHidDevice.registerApp with result $result")
         } catch (ex: SecurityException) {
             Log.wtf(null, "Failed app registration: $ex")
         }

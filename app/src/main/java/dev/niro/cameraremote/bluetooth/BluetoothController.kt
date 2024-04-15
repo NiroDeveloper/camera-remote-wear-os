@@ -22,10 +22,18 @@ object BluetoothController {
 
     fun destroy(context: Context) {
         bluetoothCallback?.hidDevice?.let {
+            try {
+                it.unregisterApp()
+            } catch (ex: SecurityException) {
+                Log.wtf(null, "Failed calling BluetoothHidDevice.unregisterApp(): $ex")
+            }
+
             val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
             val bluetoothAdapter = bluetoothManager.adapter
 
             bluetoothAdapter.closeProfileProxy(BluetoothProfile.HID_DEVICE, it)
+
+            Log.i(null, "Destroyed bluetooth service")
         }
     }
 
@@ -59,13 +67,15 @@ object BluetoothController {
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val bluetoothAdapter = bluetoothManager.adapter
         val bluetoothCallback = BluetoothServiceCallback {
-            uiConnectionUpdateListener?.let { it() }
+            uiConnectionUpdateListener?.let { listener -> listener() }
         }
 
         val buildSuccessful = bluetoothAdapter.getProfileProxy(context, bluetoothCallback, BluetoothProfile.HID_DEVICE)
 
         if (buildSuccessful) {
             this.bluetoothCallback = bluetoothCallback
+
+            Log.i(null, "Registered bluetooth service callback for hid device")
         } else {
             Log.e(null, "BluetoothAdapter.getProfileProxy failed")
         }
