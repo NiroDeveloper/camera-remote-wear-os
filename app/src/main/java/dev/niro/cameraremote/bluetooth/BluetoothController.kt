@@ -66,8 +66,10 @@ object BluetoothController {
 
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val bluetoothAdapter = bluetoothManager.adapter
-        val bluetoothCallback = BluetoothServiceCallback {
-            uiConnectionUpdateListener?.let { listener -> listener() }
+        val bluetoothCallback = BluetoothServiceCallback { connected ->
+            Log.d(null, "Trigger ui update because bluetooth connected state is $connected")
+
+            uiConnectionUpdateListener?.let { it() }
         }
 
         val buildSuccessful = bluetoothAdapter.getProfileProxy(context, bluetoothCallback, BluetoothProfile.HID_DEVICE)

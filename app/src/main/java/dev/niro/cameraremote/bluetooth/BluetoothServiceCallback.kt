@@ -4,7 +4,7 @@ import android.bluetooth.BluetoothHidDevice
 import android.bluetooth.BluetoothProfile
 import android.util.Log
 
-class BluetoothServiceCallback(val connectionStateChanged: () -> Unit) : BluetoothProfile.ServiceListener {
+class BluetoothServiceCallback(val connectionStateChanged: (Boolean) -> Unit) : BluetoothProfile.ServiceListener {
 
     var hidDevice: BluetoothHidDevice? = null
         private set
@@ -40,13 +40,15 @@ class BluetoothServiceCallback(val connectionStateChanged: () -> Unit) : Bluetoo
         hidDevice = null
         hidCallback = null
 
-        connectionStateChanged()
+        connectionStateChanged(false)
     }
 
     private fun registerApp(registerHidDevice: BluetoothHidDevice): HidDeviceCallback {
         val newHidCallback = HidDeviceCallback(registerHidDevice, connectionStateChanged) { registered ->
             if (registered) {
                 autoConnect(registerHidDevice)
+            } else {
+                connectionStateChanged(false)
             }
         }
 

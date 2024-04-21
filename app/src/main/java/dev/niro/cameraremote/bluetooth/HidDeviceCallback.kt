@@ -7,7 +7,7 @@ import android.util.Log
 
 class HidDeviceCallback(
     private val hidDevice: BluetoothHidDevice,
-    val connectionStateChanged: () -> Unit,
+    val connectionStateChanged: (Boolean) -> Unit,
     val appStatusChanged: (Boolean) -> Unit
 ) : BluetoothHidDevice.Callback() {
 
@@ -31,13 +31,15 @@ class HidDeviceCallback(
         Log.d(null, "onConnectionStateChanged($device, $state)")
 
         if (device != null) {
-            if (state == BluetoothProfile.STATE_CONNECTED) {
+            val connected = state == BluetoothProfile.STATE_CONNECTED
+
+            if (connected) {
                 connectedDevices.add(device)
             } else {
                 connectedDevices.remove(device)
             }
 
-            connectionStateChanged()
+            connectionStateChanged(connected)
         }
     }
 

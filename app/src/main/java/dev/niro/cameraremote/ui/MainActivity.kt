@@ -8,11 +8,9 @@ import com.google.android.horologist.compose.ambient.AmbientAware
 import dev.niro.cameraremote.bluetooth.BluetoothController
 import dev.niro.cameraremote.bluetooth.BluetoothPermission
 import dev.niro.cameraremote.ui.pages.RemoteLayout
-import kotlinx.coroutines.DelicateCoroutinesApi
 
 class MainActivity : ComponentActivity() {
 
-    @DelicateCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
 

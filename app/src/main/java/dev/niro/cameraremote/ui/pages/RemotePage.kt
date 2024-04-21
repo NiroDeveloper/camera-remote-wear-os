@@ -1,6 +1,5 @@
 package dev.niro.cameraremote.ui.pages
 
-import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -43,8 +42,6 @@ fun RemoteLayout(permissionLauncher: ActivityResultLauncher<String>? = null) {
     updateButtons()
 
     BluetoothController.uiConnectionUpdateListener = {
-        Log.d(null, "Updating ui because of bluetooth state change")
-
         updateButtons()
     }
 
