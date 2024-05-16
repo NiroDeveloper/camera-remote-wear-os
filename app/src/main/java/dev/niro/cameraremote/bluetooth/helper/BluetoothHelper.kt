@@ -1,4 +1,4 @@
-package dev.niro.cameraremote.bluetooth
+package dev.niro.cameraremote.bluetooth.helper
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
@@ -48,4 +48,22 @@ fun BluetoothDevice.getNameWithState(hidDevice: BluetoothHidDevice): String {
     }
 
     return "$deviceName (${this.getStateName(hidDevice)}, ${this.getBondStateName()})"
+}
+
+fun BluetoothDevice.sendKeyboardPress(hidDevice: BluetoothHidDevice, key: Byte) {
+    try {
+        hidDevice.sendReport(
+            this,
+            BluetoothConstants.ID_KEYBOARD.toInt(),
+            byteArrayOf(0x0, 0x0, key)
+        )
+
+        hidDevice.sendReport(
+            this,
+            BluetoothConstants.ID_KEYBOARD.toInt(),
+            byteArrayOf(0x0, 0x0, 0x0)
+        )
+    } catch (ex: SecurityException) {
+        Log.wtf(null, "Failed sending device input: $ex")
+    }
 }

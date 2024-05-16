@@ -3,8 +3,13 @@ package dev.niro.cameraremote.bluetooth
 import android.bluetooth.BluetoothHidDevice
 import android.bluetooth.BluetoothProfile
 import android.util.Log
+import dev.niro.cameraremote.R
+import dev.niro.cameraremote.bluetooth.helper.BluetoothConstants
+import dev.niro.cameraremote.bluetooth.helper.getNameWithState
+import dev.niro.cameraremote.interfaces.IAppStateCallback
+import dev.niro.cameraremote.interfaces.IConnectionStateCallback
 
-class BluetoothServiceCallback(val connectionStateChanged: (Boolean) -> Unit) : BluetoothProfile.ServiceListener {
+class BluetoothServiceCallback(private val connectionStateListener: IConnectionStateCallback) : BluetoothProfile.ServiceListener {
 
     var hidDevice: BluetoothHidDevice? = null
         private set
@@ -40,20 +45,26 @@ class BluetoothServiceCallback(val connectionStateChanged: (Boolean) -> Unit) : 
         hidDevice = null
         hidCallback = null
 
-        connectionStateChanged(false)
+        connectionStateListener.onConnectionStateChanged(false)
     }
 
+    fun isDeviceConnected() = hidCallback?.isDeviceConnected() ?: false
+
     private fun registerApp(registerHidDevice: BluetoothHidDevice): HidDeviceCallback {
-        val newHidCallback = HidDeviceCallback(registerHidDevice, connectionStateChanged) { registered ->
-            if (registered) {
-                autoConnect(registerHidDevice)
-            } else {
-                connectionStateChanged(false)
+        val appStateListener = object : IAppStateCallback {
+            override fun onAppStateChanged(registered: Boolean) {
+                if (registered) {
+                    startAutoConnect()
+                } else {
+                    connectionStateListener.onConnectionStateChanged(false)
+                }
             }
         }
 
+        val newHidCallback = HidDeviceCallback(registerHidDevice, connectionStateListener, appStateListener)
+
         try {
-            val result = registerHidDevice.registerApp(
+            registerHidDevice.registerApp(
                 BluetoothConstants.SPD_RECORD,
                 null,
                 BluetoothConstants.QOS_OUT,
@@ -61,7 +72,7 @@ class BluetoothServiceCallback(val connectionStateChanged: (Boolean) -> Unit) : 
                 newHidCallback
             )
 
-            Log.i(null, "Called BluetoothHidDevice.registerApp with result $result")
+            Log.i(null, "Called BluetoothHidDevice.registerApp")
         } catch (ex: SecurityException) {
             Log.wtf(null, "Failed app registration: $ex")
         }
@@ -69,23 +80,34 @@ class BluetoothServiceCallback(val connectionStateChanged: (Boolean) -> Unit) : 
         return newHidCallback
     }
 
-    fun autoConnect(connectHidDevice: BluetoothHidDevice) {
+    fun startAutoConnect() {
+        val connectHidDevice = hidDevice
+        if (connectHidDevice == null) {
+            Log.e(null, "Bluetooth service is not connected")
+            connectionStateListener.onConnectionError(R.string.error_service_register)
+
+            return
+        }
+
         val appRegistered = hidCallback?.appRegistered ?: false
         if (!appRegistered) {
             Log.e(null, "Bluetooth app is not registered")
+            connectionStateListener.onConnectionError(R.string.error_app_register)
 
             return
         }
 
         try {
-            val connectionStates = intArrayOf(
-                BluetoothProfile.STATE_CONNECTED,
-                BluetoothProfile.STATE_CONNECTING,
-                BluetoothProfile.STATE_DISCONNECTED,
-                BluetoothProfile.STATE_DISCONNECTING
-            )
+            val connectionStates = intArrayOf(BluetoothProfile.STATE_DISCONNECTED)
+            val devices = connectHidDevice.getDevicesMatchingConnectionStates(connectionStates)
 
-            connectHidDevice.getDevicesMatchingConnectionStates(connectionStates).forEach { device ->
+            if (devices.isEmpty()) {
+                connectionStateListener.onConnectionError(R.string.error_no_devices_found)
+
+                return
+            }
+
+            devices.forEach { device ->
                 Log.i(null, "Connect with device: ${device.getNameWithState(connectHidDevice)}")
 
                 connectHidDevice.connect(device)

@@ -2,4 +2,9 @@
     <string name="app_name">Camera Remote</string>
 
     <string name="camera_trigger">Camera Trigger</string>
+    <string name="error_app_register">Bluetooth registration of the app failed, try to restart bluetooth or the device.</string>
+    <string name="error_adapter_register">Registration of the bluetooth adapter failed.</string>
+    <string name="ok">OK</string>
+    <string name="error_service_register">Bluetooth Service is not connected. Make sure that Bluetooth is enabled in your device settings.</string>
+    <string name="error_no_devices_found">No devices available. Connect your phone over the device settings.</string>
 </resources>

@@ -1,5 +1,7 @@
 package dev.niro.cameraremote.ui.pages
 
+import android.content.Intent
+import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -30,6 +32,8 @@ import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
 import dev.niro.cameraremote.R
 import dev.niro.cameraremote.bluetooth.BluetoothController
+import dev.niro.cameraremote.ui.activities.ErrorActivity
+import dev.niro.cameraremote.interfaces.IUserInterfaceCallback
 import dev.niro.cameraremote.ui.UserInputController
 import kotlin.math.roundToInt
 
@@ -39,11 +43,23 @@ import kotlin.math.roundToInt
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
 fun RemoteLayout(permissionLauncher: ActivityResultLauncher<String>? = null) {
-    updateButtons()
+    val context = LocalContext.current
 
-    BluetoothController.uiConnectionUpdateListener = {
-        updateButtons()
+    BluetoothController.uiCallback = object : IUserInterfaceCallback {
+        override fun onConnectionStateChanged(connected: Boolean) {
+            Log.d(null, "onConnectionStateChanged($connected)")
+
+            updateButtons()
+        }
+
+        override fun onConnectionError(message: Int) {
+            val errorIntent = Intent(context, ErrorActivity::class.java)
+            errorIntent.putExtra("messageId", message)
+            context.startActivity(errorIntent)
+        }
     }
+
+    updateButtons()
 
     BoxWithConstraints {
         TimeText()

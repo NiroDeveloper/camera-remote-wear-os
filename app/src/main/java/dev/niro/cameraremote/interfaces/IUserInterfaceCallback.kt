@@ -1,0 +1,3 @@
+package dev.niro.cameraremote.interfaces
+
+interface IUserInterfaceCallback : IConnectionStateCallback

@@ -5,12 +5,26 @@ import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
+import dev.niro.cameraremote.R
+import dev.niro.cameraremote.bluetooth.helper.BluetoothPermission
+import dev.niro.cameraremote.bluetooth.helper.sendKeyboardPress
+import dev.niro.cameraremote.interfaces.IConnectionStateCallback
+import dev.niro.cameraremote.interfaces.IUserInterfaceCallback
 
 object BluetoothController {
 
-    var uiConnectionUpdateListener: (() -> Unit)? = null
+    var uiCallback: IUserInterfaceCallback? = null
 
     private var bluetoothCallback: BluetoothServiceCallback? = null
+
+    private val uiCallbackProxy = object : IConnectionStateCallback {
+        override fun onConnectionStateChanged(connected: Boolean) {
+            uiCallback?.onConnectionStateChanged(connected)
+        }
+        override fun onConnectionError(message: Int) {
+            uiCallback?.onConnectionError(message)
+        }
+    }
 
     fun init(context: Context) {
         if (!BluetoothPermission.hasBluetoothPermission(context)) {
@@ -45,8 +59,12 @@ object BluetoothController {
                 return
             }
 
-            localBluetoothCallback.hidDevice?.let {
-                localBluetoothCallback.autoConnect(it)
+            val localHidDevice = localBluetoothCallback.hidDevice
+            if (localHidDevice == null) {
+                Log.e(null, "Bluetooth service is not connected")
+                uiCallbackProxy.onConnectionError(R.string.error_service_register)
+            } else {
+                localBluetoothCallback.startAutoConnect()
             }
 
             return
@@ -66,52 +84,38 @@ object BluetoothController {
 
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val bluetoothAdapter = bluetoothManager.adapter
-        val bluetoothCallback = BluetoothServiceCallback { connected ->
-            Log.d(null, "Trigger ui update because bluetooth connected state is $connected")
-
-            uiConnectionUpdateListener?.let { it() }
-        }
+        val bluetoothCallback = BluetoothServiceCallback(uiCallbackProxy)
 
         val buildSuccessful = bluetoothAdapter.getProfileProxy(context, bluetoothCallback, BluetoothProfile.HID_DEVICE)
 
         if (buildSuccessful) {
-            this.bluetoothCallback = bluetoothCallback
-
             Log.i(null, "Registered bluetooth service callback for hid device")
+
+            this.bluetoothCallback = bluetoothCallback
         } else {
             Log.e(null, "BluetoothAdapter.getProfileProxy failed")
+
+            uiCallbackProxy.onConnectionError(R.string.error_adapter_register)
         }
     }
 
-    fun isDeviceConnected() = bluetoothCallback?.hidCallback?.connectedDevices?.isNotEmpty() ?: false
+    fun isDeviceConnected() = bluetoothCallback?.isDeviceConnected() ?: false
 
     fun takePicture() {
         Log.i(null, "Taking picture now")
 
         try {
-            bluetoothCallback?.let { bluetoothService ->
-                bluetoothService.hidDevice?.let {hidDevice ->
-                    bluetoothService.hidCallback?.connectedDevices?.forEach { bluetoothDevice ->
-                        hidDevice.sendReport(
-                            bluetoothDevice,
-                            8,
-                            byteArrayOf(0x0, 0x0, 40)
-                        )
+            val hidDevice = bluetoothCallback?.hidDevice
+            val connectedDevices = hidDevice?.connectedDevices
 
-                        hidDevice.sendReport(
-                            bluetoothDevice,
-                            8,
-                            byteArrayOf(0x0, 0x0, 0x0)
-                        )
+            connectedDevices?.forEach { bluetoothDevice ->
+                bluetoothDevice.sendKeyboardPress(hidDevice, 40.toByte())
 
-                        Log.i(null, "Sent report signal to device: ${bluetoothDevice.name}")
-                    }
-                }
+                Log.i(null, "Sent report signal to device: ${bluetoothDevice.name}")
             }
         } catch (ex: SecurityException) {
-            Log.wtf(null, "Failed sending device input: $ex")
+            Log.wtf(null, "Failed calling BluetoothHidDevice.unregisterApp(): $ex")
         }
-
     }
 
 }

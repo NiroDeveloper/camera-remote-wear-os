@@ -2,4 +2,9 @@
 <resources>
     <string name="app_name">Kamera Fernbedienung</string>
     <string name="camera_trigger">Kamera Auslöser</string>
+    <string name="error_app_register">Bluetooth Registrierung dieser App ist fehlgeschlagen, versuchen Sie Bluetooth oder das Gerät neu zu starten.</string>
+    <string name="error_adapter_register">Registrierung des Bluetooth Adapters ist fehlgeschlagen.</string>
+    <string name="ok">Okay</string>
+    <string name="error_service_register">Der Bluetooth Service ist nicht verbunden. Stellen Sie sicher das Bluetooth in den Geräteeinstellungen aktiviert ist.</string>
+    <string name="error_no_devices_found">Kein Gerät verfügbar. Verbinden Sie ihr Smartphone über die Geräteeinstellungen.</string>
 </resources>

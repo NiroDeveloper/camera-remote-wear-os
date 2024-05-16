@@ -4,25 +4,36 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
 import android.bluetooth.BluetoothProfile
 import android.util.Log
+import dev.niro.cameraremote.interfaces.IAppStateCallback
+import dev.niro.cameraremote.interfaces.IConnectionStateCallback
 
 class HidDeviceCallback(
     private val hidDevice: BluetoothHidDevice,
-    val connectionStateChanged: (Boolean) -> Unit,
-    val appStatusChanged: (Boolean) -> Unit
+    private val connectionStateListener: IConnectionStateCallback,
+    private val appStateListener: IAppStateCallback
 ) : BluetoothHidDevice.Callback() {
 
     var appRegistered = false
         private set
 
-    val connectedDevices = mutableListOf<BluetoothDevice>()
+    private val connectedDevices = mutableListOf<BluetoothDevice>()
+
+    fun isDeviceConnected() = connectedDevices.isNotEmpty()
 
     override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
         super.onAppStatusChanged(pluggedDevice, registered)
 
         Log.d(null, "onAppStatusChanged($pluggedDevice, $registered)")
 
+        if (appRegistered == registered) {
+            val variableInfo = "registered=$registered, appRegistered=$appRegistered"
+            Log.d(null, "App state of $pluggedDevice changed, but it is not relevant: $variableInfo")
+
+            return
+        }
+
         appRegistered = registered
-        appStatusChanged(registered)
+        appStateListener.onAppStateChanged(registered)
     }
 
     override fun onConnectionStateChanged(device: BluetoothDevice?, state: Int) {
@@ -30,17 +41,30 @@ class HidDeviceCallback(
 
         Log.d(null, "onConnectionStateChanged($device, $state)")
 
-        if (device != null) {
-            val connected = state == BluetoothProfile.STATE_CONNECTED
-
-            if (connected) {
-                connectedDevices.add(device)
-            } else {
-                connectedDevices.remove(device)
-            }
-
-            connectionStateChanged(connected)
+        if (device == null) {
+            return
         }
+
+        val connected = state == BluetoothProfile.STATE_CONNECTED
+        val isDeviceInConnectedList = connectedDevices.contains(device)
+
+        // Do nothing if the state does not change
+        // - Connected=true && already in device list
+        // - Connected=false && not in device list
+        if (connected == isDeviceInConnectedList) {
+            val variableInfo = "connected=$connected, isDeviceInConnectedList=$isDeviceInConnectedList"
+            Log.d(null, "Connection state of $device changed, but it is not relevant: $variableInfo")
+
+            return
+        }
+
+        if (connected) {
+            connectedDevices.add(device)
+        } else {
+            connectedDevices.remove(device)
+        }
+
+        connectionStateListener.onConnectionStateChanged(connected)
     }
 
     override fun onGetReport(device: BluetoothDevice?, type: Byte, id: Byte, bufferSize: Int) {
