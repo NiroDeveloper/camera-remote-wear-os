@@ -1,5 +1,6 @@
 package dev.niro.cameraremote.ui.pages
 
+import android.app.Activity
 import android.content.Intent
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
@@ -32,9 +33,9 @@ import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
 import dev.niro.cameraremote.R
 import dev.niro.cameraremote.bluetooth.BluetoothController
-import dev.niro.cameraremote.ui.activities.ErrorActivity
 import dev.niro.cameraremote.interfaces.IUserInterfaceCallback
 import dev.niro.cameraremote.ui.UserInputController
+import dev.niro.cameraremote.ui.activities.ErrorActivity
 import kotlin.math.roundToInt
 
 @Preview(device = WearDevices.RECT, showSystemUi = true)
@@ -123,7 +124,11 @@ fun TriggerButton(permissionLauncher: ActivityResultLauncher<String>?) {
                 updateButtons()
             } else {
                 permissionLauncher?.let {
-                    BluetoothController.handleBluetooth(context, it)
+                    if (context is Activity) {
+                        BluetoothController.handleBluetooth(context, it)
+                    } else {
+                        Log.wtf(null, "UI context is not a activity: $context")
+                    }
                 }
             }
         },

@@ -1,6 +1,8 @@
 package dev.niro.cameraremote.ui.activities
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,23 +24,36 @@ import com.google.android.horologist.annotations.ExperimentalHorologistApi
 import com.google.android.horologist.compose.layout.ScalingLazyColumn
 import com.google.android.horologist.compose.layout.ScalingLazyColumnState
 import dev.niro.cameraremote.R
+import dev.niro.cameraremote.bluetooth.helper.BluetoothPermission
 
-class ErrorActivity : ComponentActivity() {
+class BluetoothPermissionActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val errorId = intent.getIntExtra("messageId", -1)
-        val errorMessage = resources.getString(errorId)
+        // Must be created at activity startup, otherwise the app will crash.
+        val permissionLauncher = BluetoothPermission.buildPermissionLauncher(this) { permissionGranted ->
+            Log.d(null, "Bluetooth permission granted: $permissionGranted")
+
+            if (permissionGranted) {
+                finish()
+            } else {
+                val errorIntent = Intent(this, ErrorActivity::class.java)
+                errorIntent.putExtra("messageId", R.string.error_bluetooth_permission_denied)
+                this.startActivity(errorIntent)
+            }
+        }
 
         setContent {
-            ErrorLayout(errorMessage) {
-                finish()
+            BluetoothPermissionLayout {
+                Log.i(null, "Requesting bluetooth permission")
+
+                BluetoothPermission.requestBluetoothPermission(permissionLauncher)
             }
         }
     }
-
 }
+
 
 @OptIn(ExperimentalHorologistApi::class)
 @Preview(device = WearDevices.RECT, showSystemUi = true)
@@ -46,17 +61,14 @@ class ErrorActivity : ComponentActivity() {
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
-fun ErrorLayout(
-    message: String = "This is a very long error message that describes what happened.",
-    onOk: (() -> Unit)? = null
-) {
+fun BluetoothPermissionLayout(onOk: (() -> Unit)? = null) {
     ScalingLazyColumn(
         modifier = Modifier.fillMaxSize(),
         columnState = ScalingLazyColumnState(initialScrollPosition = ScalingLazyColumnState.ScrollPosition(0, 100))
     ) {
         item {
             Icon(
-                painter = painterResource(id = R.drawable.baseline_error_24),
+                painter = painterResource(id = R.drawable.baseline_info_24),
                 contentDescription = null,
                 modifier = Modifier.size(48.dp)
             )
@@ -64,11 +76,11 @@ fun ErrorLayout(
 
         item {
             Text(
-                text = message,
+                text = stringResource(id = R.string.bluetooth_permission_description),
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(4.dp)
+                    .padding(8.dp)
             )
         }
 
@@ -81,7 +93,7 @@ fun ErrorLayout(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(4.dp)
+                    .padding(8.dp)
             ) {
                 Text(text = stringResource(id = R.string.ok))
             }

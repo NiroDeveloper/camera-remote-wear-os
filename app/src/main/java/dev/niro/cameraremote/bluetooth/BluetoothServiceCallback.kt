@@ -102,6 +102,7 @@ class BluetoothServiceCallback(private val connectionStateListener: IConnectionS
             val devices = connectHidDevice.getDevicesMatchingConnectionStates(connectionStates)
 
             if (devices.isEmpty()) {
+                Log.e(null, "No devices found")
                 connectionStateListener.onConnectionError(R.string.error_no_devices_found)
 
                 return

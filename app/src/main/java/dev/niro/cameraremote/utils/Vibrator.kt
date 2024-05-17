@@ -1,6 +1,5 @@
 package dev.niro.cameraremote.utils
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.os.VibrationEffect
@@ -16,7 +15,6 @@ object Vibrator {
         getVibrator(context).vibrate(VibrationEffect.createOneShot(100, 200))
     }
 
-    @SuppressLint("ServiceCast")
     private fun getVibrator(context: Context): android.os.Vibrator {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager

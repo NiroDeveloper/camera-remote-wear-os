@@ -1,6 +1,8 @@
 package dev.niro.cameraremote.ui.activities
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -19,7 +21,16 @@ class MainActivity : ComponentActivity() {
         BluetoothController.init(this)
 
         // Must be created at activity startup, otherwise the app will crash.
-        val permissionLauncher = BluetoothPermission.buildPermissionLauncher(this)
+        val permissionLauncher = BluetoothPermission.buildPermissionLauncher(this) { permissionGranted ->
+            Log.d(null, "Bluetooth permission granted: $permissionGranted")
+
+            if (permissionGranted) {
+                BluetoothController.registerBluetoothService(this)
+            } else {
+                val bluetoothPermissionIntent = Intent(this, BluetoothPermissionActivity::class.java)
+                this.startActivity(bluetoothPermissionIntent)
+            }
+        }
 
         setContent {
             AmbientAware {

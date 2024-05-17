@@ -1,8 +1,10 @@
 package dev.niro.cameraremote.bluetooth
 
+import android.app.Activity
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import dev.niro.cameraremote.R
@@ -10,6 +12,7 @@ import dev.niro.cameraremote.bluetooth.helper.BluetoothPermission
 import dev.niro.cameraremote.bluetooth.helper.sendKeyboardPress
 import dev.niro.cameraremote.interfaces.IConnectionStateCallback
 import dev.niro.cameraremote.interfaces.IUserInterfaceCallback
+import dev.niro.cameraremote.ui.activities.BluetoothPermissionActivity
 
 object BluetoothController {
 
@@ -51,11 +54,11 @@ object BluetoothController {
         }
     }
 
-    fun handleBluetooth(context: Context, permissionLauncher: ActivityResultLauncher<String>) {
-        if (BluetoothPermission.hasBluetoothPermission(context)) {
+    fun handleBluetooth(activity: Activity, permissionLauncher: ActivityResultLauncher<String>) {
+        if (BluetoothPermission.hasBluetoothPermission(activity)) {
             val localBluetoothCallback = bluetoothCallback
             if (localBluetoothCallback == null) {
-                registerBluetoothService(context)
+                registerBluetoothService(activity)
                 return
             }
 
@@ -70,9 +73,14 @@ object BluetoothController {
             return
         }
 
-        // TODO: Show bluetooth explanation ui
-        // https://developer.android.com/training/permissions/requesting?hl=de#explain
+        if (BluetoothPermission.shouldShowPermissionDescription(activity)) {
+            val bluetoothPermissionIntent = Intent(activity, BluetoothPermissionActivity::class.java)
+            activity.startActivity(bluetoothPermissionIntent)
 
+            return
+        }
+
+        Log.i(null, "Requesting bluetooth permission")
         BluetoothPermission.requestBluetoothPermission(permissionLauncher)
     }
 
