@@ -12,7 +12,7 @@ android {
         minSdk = 28
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -60,8 +60,10 @@ dependencies {
     implementation(libs.wear.tooling.preview)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.horologist.compose.layout)
+
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
+
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
 }
