@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.wear.tooling.preview)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.horologist.compose.layout)
+    implementation(libs.fragment)
 
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
