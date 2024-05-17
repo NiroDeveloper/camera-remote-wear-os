@@ -11,12 +11,12 @@ import dev.niro.cameraremote.R
 import dev.niro.cameraremote.bluetooth.helper.BluetoothPermission
 import dev.niro.cameraremote.bluetooth.helper.sendKeyboardPress
 import dev.niro.cameraremote.interfaces.IConnectionStateCallback
-import dev.niro.cameraremote.interfaces.IUserInterfaceCallback
+import dev.niro.cameraremote.interfaces.IUserInterfaceBluetoothCallback
 import dev.niro.cameraremote.ui.activities.BluetoothPermissionActivity
 
 object BluetoothController {
 
-    var uiCallback: IUserInterfaceCallback? = null
+    var uiCallback: IUserInterfaceBluetoothCallback? = null
 
     private var bluetoothCallback: BluetoothServiceCallback? = null
 

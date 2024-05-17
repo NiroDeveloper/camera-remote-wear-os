@@ -8,9 +8,9 @@ composeFoundation = "1.3.1"
 coreSplashscreen = "1.0.1"
 wearToolingPreview = "1.0.0"
 kotlinxCoroutinesAndroid = "1.8.1"
-horologistComposeLayout = "0.6.11"
 activityCompose = "1.9.0"
 fragment = "1.7.1" # Required for some other libs, but we have to declare a newer version ... otherwise there is a lint error.
+wear = "1.3.0"
 
 [libraries]
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
@@ -26,8 +26,8 @@ activity-compose = { group = "androidx.activity", name = "activity-compose", ver
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
-horologist-compose-layout = { group = "com.google.android.horologist", name = "horologist-compose-layout", version.ref = "horologistComposeLayout" }
 fragment = { group = "androidx.fragment", name = "fragment", version.ref = "fragment" }
+wear = { group = "androidx.wear", name = "wear", version.ref = "wear" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

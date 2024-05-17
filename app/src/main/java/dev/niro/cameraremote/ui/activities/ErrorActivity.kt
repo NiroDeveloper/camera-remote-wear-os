@@ -14,13 +14,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.google.android.horologist.annotations.ExperimentalHorologistApi
-import com.google.android.horologist.compose.layout.ScalingLazyColumn
-import com.google.android.horologist.compose.layout.ScalingLazyColumnState
 import dev.niro.cameraremote.R
 
 class ErrorActivity : ComponentActivity() {
@@ -39,20 +39,22 @@ class ErrorActivity : ComponentActivity() {
     }
 
 }
-
-@OptIn(ExperimentalHorologistApi::class)
 @Preview(device = WearDevices.RECT, showSystemUi = true)
 @Preview(device = WearDevices.SQUARE, showSystemUi = true)
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
 fun ErrorLayout(
-    message: String = "This is a very long error message that describes what happened.",
+    message: String = "This is a very long error message that describes what happened.\n\nHere is some more text to read.",
     onOk: (() -> Unit)? = null
 ) {
+    val scalingState = rememberScalingLazyListState(0, 100)
+
+    PositionIndicator(scalingLazyListState = scalingState)
+
     ScalingLazyColumn(
         modifier = Modifier.fillMaxSize(),
-        columnState = ScalingLazyColumnState(initialScrollPosition = ScalingLazyColumnState.ScrollPosition(0, 100))
+        state = scalingState
     ) {
         item {
             Icon(
