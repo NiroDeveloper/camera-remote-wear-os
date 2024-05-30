@@ -16,10 +16,6 @@ class HidDeviceCallback(
     var appRegistered = false
         private set
 
-    private val connectedDevices = mutableListOf<BluetoothDevice>()
-
-    fun isDeviceConnected() = connectedDevices.isNotEmpty()
-
     override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
         super.onAppStatusChanged(pluggedDevice, registered)
 
@@ -46,23 +42,6 @@ class HidDeviceCallback(
         }
 
         val connected = state == BluetoothProfile.STATE_CONNECTED
-        val isDeviceInConnectedList = connectedDevices.contains(device)
-
-        // Do nothing if the state does not change
-        // - Connected=true && already in device list
-        // - Connected=false && not in device list
-        if (connected == isDeviceInConnectedList) {
-            val variableInfo = "connected=$connected, isDeviceInConnectedList=$isDeviceInConnectedList"
-            Log.d(null, "Connection state of $device changed, but it is not relevant: $variableInfo")
-
-            return
-        }
-
-        if (connected) {
-            connectedDevices.add(device)
-        } else {
-            connectedDevices.remove(device)
-        }
 
         connectionStateListener.onConnectionStateChanged(connected)
     }

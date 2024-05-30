@@ -1,5 +1,6 @@
 package dev.niro.cameraremote.bluetooth
 
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
 import android.bluetooth.BluetoothProfile
 import android.util.Log
@@ -9,7 +10,8 @@ import dev.niro.cameraremote.bluetooth.helper.getNameWithState
 import dev.niro.cameraremote.interfaces.IAppStateCallback
 import dev.niro.cameraremote.interfaces.IConnectionStateCallback
 
-class BluetoothServiceCallback(private val connectionStateListener: IConnectionStateCallback) : BluetoothProfile.ServiceListener {
+class BluetoothServiceCallback(private val connectionStateListener: IConnectionStateCallback) :
+    BluetoothProfile.ServiceListener {
 
     var hidDevice: BluetoothHidDevice? = null
         private set
@@ -47,8 +49,6 @@ class BluetoothServiceCallback(private val connectionStateListener: IConnectionS
 
         connectionStateListener.onConnectionStateChanged(false)
     }
-
-    fun isDeviceConnected() = hidCallback?.isDeviceConnected() ?: false
 
     private fun registerApp(registerHidDevice: BluetoothHidDevice): HidDeviceCallback {
         val appStateListener = object : IAppStateCallback {
@@ -116,6 +116,18 @@ class BluetoothServiceCallback(private val connectionStateListener: IConnectionS
         } catch (ex: SecurityException) {
             Log.wtf(null, "Failed auto connect: $ex")
         }
+    }
+
+    fun isDeviceConnected() = getConnectedDevices().isNotEmpty()
+
+    fun getConnectedDevices(): List<BluetoothDevice> {
+        try {
+            return hidDevice?.connectedDevices ?: listOf()
+        } catch (ex: SecurityException) {
+            Log.wtf(null, "Failed auto connect: $ex")
+        }
+
+        return listOf()
     }
 
 }
