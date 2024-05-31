@@ -9,4 +9,6 @@
     <string name="error_no_devices_found">Kein Gerät verfügbar.\n\nVerbinden Sie ihr Smartphone über die Geräteeinstellungen.</string>
     <string name="bluetooth_permission_description">Diese App benötigt Zugriff auf die Bluetooth Schnittstelle dieser Smartwatch, um Signale an Ihr Smartphone zu versenden.\n\nBeim Auslesen der Bluetooth Schnittstelle können Geräte in der Nähe identifiziert werden.</string>
     <string name="error_bluetooth_permission_denied">Sie haben die Bluetooth Berechtigung zu oft abgeleht.\n\nWenn Sie die App verwenden möchten, müssen Sie nun die Bluetooth Berechtigung in den Geräte Einstellungen für diese App aktivieren.</string>
+    <string name="settings">Einstellungen</string>
+    <string name="vibration">Vibration</string>
 </resources>

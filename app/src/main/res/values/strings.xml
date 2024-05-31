@@ -9,4 +9,6 @@
     <string name="error_no_devices_found">No devices available.\n\nConnect your phone over the device settings.</string>
     <string name="bluetooth_permission_description">This app requires access to the Bluetooth interface of this smartwatch in order to send signals to your smartphone.\n\nWhen reading out the Bluetooth interface, devices in the vicinity can be identified.</string>
     <string name="error_bluetooth_permission_denied">You have rejected the Bluetooth permission too often.\n\nIf you want to use the app, you must now activate Bluetooth permission for this app in the device settings.</string>
+    <string name="settings">Settings</string>
+    <string name="vibration">Vibration</string>
 </resources>

@@ -44,8 +44,8 @@ import dev.niro.cameraremote.ui.activities.ErrorActivity
 import kotlin.math.roundToInt
 
 object RemotePage {
-    val triggerButtonIcon = mutableIntStateOf(0)
-    val timerDelayText = mutableStateOf("")
+    val triggerButtonIcon = mutableIntStateOf(R.drawable.baseline_linked_camera_24)
+    val timerDelayText = mutableStateOf("0s")
     val modeTextDecoration = mutableStateOf(TextDecoration.None)
     val progressIndicator = mutableFloatStateOf(0f)
 

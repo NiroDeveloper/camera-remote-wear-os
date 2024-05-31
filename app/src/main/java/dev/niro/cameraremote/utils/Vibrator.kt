@@ -4,14 +4,23 @@ import android.content.Context
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.VibratorManager
+import dev.niro.cameraremote.ui.pages.SettingsPage
 
 object Vibrator {
 
     fun tick(context: Context) {
+        if (!SettingsPage.vibrationEnabled.value) {
+            return
+        }
+
         getVibrator(context).vibrate(VibrationEffect.createOneShot(50, 100))
     }
 
     fun shoot(context: Context) {
+        if (!SettingsPage.vibrationEnabled.value) {
+            return
+        }
+
         getVibrator(context).vibrate(VibrationEffect.createOneShot(100, 200))
     }
 
