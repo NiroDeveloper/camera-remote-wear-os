@@ -1,5 +1,6 @@
 package dev.niro.cameraremote.ui.pages
 
+import android.content.Context
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -9,24 +10,53 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Switch
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.ToggleChip
 import androidx.wear.tooling.preview.devices.WearDevices
 import dev.niro.cameraremote.BuildConfig
 import dev.niro.cameraremote.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 object SettingsPage {
 
+    private val VIBRATION_ENABLED_KEY = booleanPreferencesKey("vibration_enabled")
+    private val Context.settingsPreferencesDataStore: DataStore<Preferences> by preferencesDataStore("settings")
+
     var vibrationEnabled = mutableStateOf(true)
+
+    fun loadSettings(context: Context) {
+        CoroutineScope(Dispatchers.Default).launch {
+            val dataStore = context.settingsPreferencesDataStore.data.first()
+
+            dataStore[VIBRATION_ENABLED_KEY]?.let {
+                vibrationEnabled.value = it
+            }
+        }
+    }
+
+    fun writeSettings(context: Context) {
+        CoroutineScope(Dispatchers.Default).launch {
+            context.settingsPreferencesDataStore.edit { preferences ->
+                preferences[VIBRATION_ENABLED_KEY] = vibrationEnabled.value
+            }
+        }
+    }
 
 }
 
@@ -36,13 +66,11 @@ object SettingsPage {
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
 fun SettingsLayout() {
-    val scalingState = rememberScalingLazyListState()
-
-    PositionIndicator(scalingLazyListState = scalingState)
+    val context = LocalContext.current
+    SettingsPage.loadSettings(context)
 
     ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        state = scalingState
+        modifier = Modifier.fillMaxSize()
     ) {
 
         item {
@@ -57,11 +85,14 @@ fun SettingsLayout() {
         }
 
         item {
-            var vibrationEnabled by remember { mutableStateOf(true) }
+            var vibrationEnabled by remember { SettingsPage.vibrationEnabled }
 
             ToggleChip(
                 checked = vibrationEnabled,
-                onCheckedChange = { vibrationEnabled = it },
+                onCheckedChange = {
+                    vibrationEnabled = it
+                    SettingsPage.writeSettings(context)
+                },
                 label = { Text(stringResource(id = R.string.vibration)) },
                 toggleControl = { Switch(checked = vibrationEnabled) },
                 modifier = Modifier.fillMaxWidth()
@@ -77,6 +108,5 @@ fun SettingsLayout() {
                     .padding(8.dp)
             )
         }
-
     }
 }

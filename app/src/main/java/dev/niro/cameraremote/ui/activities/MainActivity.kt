@@ -14,6 +14,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -94,7 +95,7 @@ fun MainActivityLayout(permissionLauncher: ActivityResultLauncher<String>? = nul
     HorizontalPager(state = pagerState) {page ->
         when(page) {
             0 -> RemoteLayout(permissionLauncher)
-            1 -> Text(text = "Devices List", modifier = Modifier.fillMaxSize())
+            1 -> Text(text = "Devices List", modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
             2 -> SettingsLayout()
         }
     }

@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.fragment)
     implementation(libs.wear)
+    implementation(libs.datastore.preferences)
 
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
