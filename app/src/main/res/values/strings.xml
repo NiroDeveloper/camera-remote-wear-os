@@ -24,4 +24,6 @@
     <string name="bond_state_bonding">Bonding</string>
     <string name="bond_state_unbound">Unbound</string>
     <string name="bond_state_error">Bond Error</string>
+    <string name="shutdown">App Shutdown</string>
+    <string name="shutdown_description">Stop the app and unregister bluetooth services.</string>
 </resources>

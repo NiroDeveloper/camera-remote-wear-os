@@ -31,6 +31,7 @@ import dev.niro.cameraremote.ui.pages.DevicesPage
 import dev.niro.cameraremote.ui.pages.RemoteLayout
 import dev.niro.cameraremote.ui.pages.RemotePage
 import dev.niro.cameraremote.ui.pages.SettingsLayout
+import dev.niro.cameraremote.ui.pages.SettingsPage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,6 +52,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
 
         CoroutineScope(Dispatchers.Default).launch {
             RemotePage.updateUi()
+            SettingsPage.loadSettings(this@MainActivity)
             BluetoothController.init(this@MainActivity)
         }
 

@@ -22,7 +22,9 @@ import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
 import dev.niro.cameraremote.R
+import dev.niro.cameraremote.bluetooth.BluetoothController
 import dev.niro.cameraremote.bluetooth.DeviceWrapper
+import dev.niro.cameraremote.bluetooth.enums.ConnectionState
 import kotlinx.coroutines.flow.MutableStateFlow
 
 
@@ -77,15 +79,21 @@ fun DevicesLayout() {
             val bondString = stringResource(id = device.bond.stringId)
 
             Chip(
-                onClick = { },
+                onClick = {
+                    when (device.state) {
+                        ConnectionState.CONNECTED -> BluetoothController.disconnectDevice(device)
+                        ConnectionState.DISCONNECTED -> BluetoothController.connectDevice(device)
+                        else -> { }
+                    }
+                },
                 label = { Text(text = device.name) },
                 secondaryLabel = { Text(text = "$stateString, $bondString") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ChipDefaults.secondaryChipColors()
+                colors = ChipDefaults.secondaryChipColors(),
+                enabled = (device.state in arrayOf(ConnectionState.DISCONNECTED, ConnectionState.CONNECTED))
             )
 
         }
-
 
         item {
             val titleTextId = if (deviceListState.isEmpty()) {
@@ -105,7 +113,6 @@ fun DevicesLayout() {
                 colors = ChipDefaults.primaryChipColors()
             )
         }
-
     }
 
 }

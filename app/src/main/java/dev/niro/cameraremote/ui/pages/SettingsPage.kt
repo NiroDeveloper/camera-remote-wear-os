@@ -40,21 +40,17 @@ object SettingsPage {
 
     var vibrationEnabled = mutableStateOf(true)
 
-    fun loadSettings(context: Context) {
-        CoroutineScope(Dispatchers.Default).launch {
-            val dataStore = context.settingsPreferencesDataStore.data.first()
+    suspend fun loadSettings(context: Context) {
+        val dataStore = context.settingsPreferencesDataStore.data.first()
 
-            dataStore[VIBRATION_ENABLED_KEY]?.let {
-                vibrationEnabled.value = it
-            }
+        dataStore[VIBRATION_ENABLED_KEY]?.let {
+            vibrationEnabled.value = it
         }
     }
 
-    fun writeSettings(context: Context) {
-        CoroutineScope(Dispatchers.Default).launch {
-            context.settingsPreferencesDataStore.edit { preferences ->
-                preferences[VIBRATION_ENABLED_KEY] = vibrationEnabled.value
-            }
+    suspend fun writeSettings(context: Context) {
+        context.settingsPreferencesDataStore.edit { preferences ->
+            preferences[VIBRATION_ENABLED_KEY] = vibrationEnabled.value
         }
     }
 
@@ -67,7 +63,6 @@ object SettingsPage {
 @Composable
 fun SettingsLayout() {
     val context = LocalContext.current
-    SettingsPage.loadSettings(context)
 
     ScalingLazyColumn(
         modifier = Modifier.fillMaxSize()
@@ -91,7 +86,8 @@ fun SettingsLayout() {
                 checked = vibrationEnabled,
                 onCheckedChange = {
                     vibrationEnabled = it
-                    SettingsPage.writeSettings(context)
+
+                    CoroutineScope(Dispatchers.Default).launch { SettingsPage.writeSettings(context) }
                 },
                 label = { Text(stringResource(id = R.string.vibration)) },
                 toggleControl = { Switch(checked = vibrationEnabled) },

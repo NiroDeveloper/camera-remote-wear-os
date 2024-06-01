@@ -26,11 +26,9 @@ class HidDeviceCallback(
 
         Log.d(null, "onConnectionStateChanged($device, $state)")
 
-        if (device == null) {
-            return
+        device?.let {
+            connectionStateListener.onConnectionStateChange(it, ConnectionState.fromBluetoothProfile(state))
         }
-
-        connectionStateListener.onConnectionStateChange(device, ConnectionState.fromBluetoothProfile(state))
     }
 
     override fun onGetReport(device: BluetoothDevice?, type: Byte, id: Byte, bufferSize: Int) {

@@ -23,7 +23,10 @@ class BluetoothServiceCallback(
 
     private var hidCallback: HidDeviceCallback? = null
 
-    private var appRegistered = false
+    var appRegistered = false
+        private set
+
+    private val radarDeviceRegister = mutableMapOf<String, ConnectionState>()
 
     override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
         Log.d(null, "onServiceConnected($profile, $proxy)")
@@ -58,7 +61,7 @@ class BluetoothServiceCallback(
     }
 
     private fun registerApp(registerHidDevice: BluetoothHidDevice): HidDeviceCallback {
-        val serviceStateListener = object : IServiceStateCallback {
+        val serviceStateListener = object : IServiceStateCallback, IConnectionStateCallback {
             override fun onServiceStateChange(available: Boolean) {
                 appRegistered = available
 
@@ -74,9 +77,15 @@ class BluetoothServiceCallback(
             override fun onServiceError(message: Int) {
                 serviceStateListener.onServiceError(message)
             }
+
+            override fun onConnectionStateChange(device: BluetoothDevice, state: ConnectionState) {
+                connectionStateListener.onConnectionStateChange(device, state)
+
+                radarDeviceRegister[device.getAddressString()] = state
+            }
         }
 
-        val newHidCallback = HidDeviceCallback(registerHidDevice, connectionStateListener, serviceStateListener)
+        val newHidCallback = HidDeviceCallback(registerHidDevice, serviceStateListener, serviceStateListener)
 
         try {
             registerHidDevice.registerApp(
@@ -99,26 +108,26 @@ class BluetoothServiceCallback(
         val thread = Thread {
             Log.i(null, "Starting radar thread")
 
-            val foundDeviceAddresses = mutableMapOf<String, ConnectionState>()
             while (true) {
                 val localHidDevice = hidDevice ?: return@Thread
                 val newDeviceList = getDevices()
 
                 for (device in newDeviceList) {
                     val deviceAddress = device.getAddressString()
-                    val connectionState = device.getConnectionStateEnum(localHidDevice)
+                    val oldConnectionState = radarDeviceRegister[deviceAddress]
+                    val newConnectionState = device.getConnectionStateEnum(localHidDevice)
 
-                    if (foundDeviceAddresses[deviceAddress] == connectionState) {
+                    if (oldConnectionState == newConnectionState) {
                         continue
                     }
 
-                    Log.d(null, "Radar detected device change: $device")
+                    Log.i(null, "Radar detected device change: $device ($oldConnectionState -> $newConnectionState)")
 
-                    connectionStateListener.onConnectionStateChange(device, connectionState)
-                    foundDeviceAddresses[deviceAddress] = connectionState
+                    connectionStateListener.onConnectionStateChange(device, newConnectionState)
+                    radarDeviceRegister[deviceAddress] = newConnectionState
                 }
 
-                val sleepDelay = if (foundDeviceAddresses.isEmpty()) 1_000L else 10_000L
+                val sleepDelay = if (radarDeviceRegister.isEmpty()) 1_000L else 10_000L
                 Thread.sleep(sleepDelay)
             }
         }
@@ -128,8 +137,8 @@ class BluetoothServiceCallback(
     }
 
     fun startAutoConnect() {
-        val connectHidDevice = hidDevice
-        if (connectHidDevice == null) {
+        val hostHidDevice = hidDevice
+        if (hostHidDevice == null) {
             Log.e(null, "Bluetooth service is not connected")
             serviceStateListener.onServiceError(R.string.error_service_register)
 
@@ -159,9 +168,9 @@ class BluetoothServiceCallback(
 
         try {
             devices.forEach { device ->
-                Log.i(null, "Connect with device: ${device.toDebugString(connectHidDevice)}")
+                Log.i(null, "Connect with device: ${device.toDebugString(hostHidDevice)}")
 
-                connectHidDevice.connect(device)
+                hostHidDevice.connect(device)
             }
         } catch (ex: SecurityException) {
             Log.wtf(null, "Failed auto connect: $ex")
@@ -170,7 +179,7 @@ class BluetoothServiceCallback(
 
     fun isDeviceConnected() = getDevices(BluetoothProfile.STATE_CONNECTED).isNotEmpty()
 
-    private fun getDevices(
+    fun getDevices(
         vararg states: Int = intArrayOf(
             BluetoothProfile.STATE_DISCONNECTED,
             BluetoothProfile.STATE_DISCONNECTING,

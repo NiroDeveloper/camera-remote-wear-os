@@ -13,6 +13,7 @@ import dev.niro.cameraremote.R
 import dev.niro.cameraremote.bluetooth.enums.ConnectionState
 import dev.niro.cameraremote.bluetooth.helper.BluetoothPermission
 import dev.niro.cameraremote.bluetooth.helper.sendKeyboardPress
+import dev.niro.cameraremote.bluetooth.helper.toDebugString
 import dev.niro.cameraremote.bluetooth.helper.toDeviceWrapper
 import dev.niro.cameraremote.interfaces.IConnectionStateCallback
 import dev.niro.cameraremote.interfaces.IServiceStateCallback
@@ -72,12 +73,11 @@ object BluetoothController {
     fun takePicture() {
         Log.i(null, "Taking picture now")
 
-        try {
-            val hidDevice = bluetoothCallback?.hidDevice
-            val connectedDevices = hidDevice?.connectedDevices
+        val localHidDevice = bluetoothCallback?.hidDevice ?: return
 
-            connectedDevices?.forEach { bluetoothDevice ->
-                bluetoothDevice.sendKeyboardPress(hidDevice, 40.toByte())
+        try {
+            bluetoothCallback?.getDevices()?.forEach { bluetoothDevice ->
+                bluetoothDevice.sendKeyboardPress(localHidDevice, 40.toByte())
 
                 Log.i(null, "Sent report signal to device: ${bluetoothDevice.name}")
             }
@@ -126,18 +126,52 @@ object BluetoothController {
 
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val bluetoothAdapter = bluetoothManager.adapter
-        val bluetoothCallback = BluetoothServiceCallback(uiCallbackProxy, uiCallbackProxy)
+        val newBluetoothCallback = BluetoothServiceCallback(uiCallbackProxy, uiCallbackProxy)
 
-        val buildSuccessful = bluetoothAdapter.getProfileProxy(context, bluetoothCallback, BluetoothProfile.HID_DEVICE)
+        val buildSuccessful = bluetoothAdapter.getProfileProxy(context, newBluetoothCallback, BluetoothProfile.HID_DEVICE)
 
         if (buildSuccessful) {
             Log.i(null, "Registered bluetooth service callback for hid device")
 
-            this.bluetoothCallback = bluetoothCallback
+            bluetoothCallback = newBluetoothCallback
         } else {
             Log.e(null, "BluetoothAdapter.getProfileProxy failed")
 
             uiCallbackProxy.onServiceError(R.string.error_adapter_register)
+        }
+    }
+
+    @WorkerThread
+    fun connectDevice(device: DeviceWrapper) {
+        val hostHidDevice = bluetoothCallback?.hidDevice ?: return
+
+        bluetoothCallback?.let { bluetoothCallback ->
+            val hidDevice = bluetoothCallback.getDevices().firstOrNull { it.address == device.address } ?: return
+
+            Log.i(null, "Connect with device: ${hidDevice.toDebugString(hostHidDevice)}")
+
+            try {
+                hostHidDevice.connect(hidDevice)
+            } catch (ex: SecurityException) {
+                Log.wtf(null, "Failed connect: $ex")
+            }
+        }
+    }
+
+    @WorkerThread
+    fun disconnectDevice(device: DeviceWrapper) {
+        val hostHidDevice = bluetoothCallback?.hidDevice ?: return
+
+        bluetoothCallback?.let { bluetoothCallback ->
+            val hidDevice = bluetoothCallback.getDevices().firstOrNull { it.address == device.address } ?: return
+
+            Log.i(null, "Disconnect with device: ${hidDevice.toDebugString(hostHidDevice)}")
+
+            try {
+                hostHidDevice.disconnect(hidDevice)
+            } catch (ex: SecurityException) {
+                Log.wtf(null, "Failed disconnect: $ex")
+            }
         }
     }
 

@@ -24,4 +24,6 @@
     <string name="bond_state_bonding">Koppeln</string>
     <string name="bond_state_unbound">Ungekoppelt</string>
     <string name="bond_state_error">Kopplungsfehler</string>
+    <string name="shutdown">App Herunterfahren</string>
+    <string name="shutdown_description">Diese App beenden und den Bluettooth Service abmelden.</string>
 </resources>
