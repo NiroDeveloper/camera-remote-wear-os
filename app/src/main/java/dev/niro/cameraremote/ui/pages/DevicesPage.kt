@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -20,6 +21,7 @@ import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
+import dev.niro.cameraremote.R
 import dev.niro.cameraremote.bluetooth.DeviceWrapper
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -59,7 +61,7 @@ fun DevicesLayout() {
 
         item {
             Text(
-                text = "Devices",
+                text = stringResource(id = R.string.devices),
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
@@ -71,10 +73,13 @@ fun DevicesLayout() {
         items(deviceListState.size) {
             val device = deviceListState[it]
 
+            val stateString = stringResource(id = device.state.stringId)
+            val bondString = stringResource(id = device.bond.stringId)
+
             Chip(
                 onClick = { },
                 label = { Text(text = device.name) },
-                secondaryLabel = { Text(text = "${device.state}, ${device.bond}") },
+                secondaryLabel = { Text(text = "$stateString, $bondString") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ChipDefaults.secondaryChipColors()
             )
@@ -83,10 +88,10 @@ fun DevicesLayout() {
 
 
         item {
-            val text = if (deviceListState.isEmpty()) {
-                "No devices paired"
+            val titleTextId = if (deviceListState.isEmpty()) {
+                R.string.devices_none_paired
             } else {
-                "Connect more"
+                R.string.devices_connect_more
             }
 
             Chip(
@@ -95,8 +100,8 @@ fun DevicesLayout() {
                     intentOpenBluetoothSettings.setAction(Settings.ACTION_BLUETOOTH_SETTINGS)
                     context.startActivity(intentOpenBluetoothSettings)
                 },
-                label = { Text(text = text) },
-                secondaryLabel = { Text(text = "Open Bluetooth settings") },
+                label = { Text(text = stringResource(id = titleTextId)) },
+                secondaryLabel = { Text(text = stringResource(id = R.string.devices_open_bluetooth_settings)) },
                 colors = ChipDefaults.primaryChipColors()
             )
         }
