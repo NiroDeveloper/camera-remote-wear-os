@@ -1,3 +1,9 @@
 package dev.niro.cameraremote.interfaces
 
-interface IUserInterfaceBluetoothCallback : IConnectionStateCallback
+import dev.niro.cameraremote.bluetooth.DeviceWrapper
+
+interface IUserInterfaceBluetoothCallback : IServiceStateCallback {
+
+    fun onConnectionStateChange(device: DeviceWrapper)
+
+}

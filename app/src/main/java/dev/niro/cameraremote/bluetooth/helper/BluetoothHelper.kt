@@ -2,52 +2,63 @@ package dev.niro.cameraremote.bluetooth.helper
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
-import android.bluetooth.BluetoothProfile
 import android.util.Log
+import dev.niro.cameraremote.bluetooth.DeviceWrapper
+import dev.niro.cameraremote.bluetooth.enums.BondState
+import dev.niro.cameraremote.bluetooth.enums.ConnectionState
 
-fun BluetoothDevice.getStateName(hidDevice: BluetoothHidDevice): String {
+fun BluetoothDevice.getConnectionStateEnum(hidDevice: BluetoothHidDevice): ConnectionState {
     return try {
         val state = hidDevice.getConnectionState(this)
 
-        when (state) {
-            BluetoothProfile.STATE_CONNECTED -> "STATE_CONNECTED"
-            BluetoothProfile.STATE_CONNECTING -> "STATE_CONNECTING"
-            BluetoothProfile.STATE_DISCONNECTED -> "STATE_DISCONNECTED"
-            BluetoothProfile.STATE_DISCONNECTING -> "STATE_DISCONNECTING"
-            else -> "STATE_UNKNOWN"
-        }
+        ConnectionState.fromBluetoothProfile(state)
     } catch (ex: SecurityException) {
         Log.e(null, "Failed BluetoothHidDevice.getConnectionState: $ex")
 
-        "STATE_UNKNOWN"
+        ConnectionState.ERROR
     }
 }
 
-fun BluetoothDevice.getBondStateName(): String {
+fun BluetoothDevice.getBondStateEnum(): BondState {
     return try {
-        when (this.bondState) {
-            BluetoothDevice.BOND_BONDED -> "BOND_BONDED"
-            BluetoothDevice.BOND_BONDING -> "BOND_BONDING"
-            BluetoothDevice.BOND_NONE -> "BOND_NONE"
-            else -> "BOND_UNKNOWN"
-        }
+        BondState.fromBluetoothDevice(this.bondState)
     } catch (ex: SecurityException) {
         Log.e(null, "Failed BluetoothDevice.bondState: $ex")
 
-        "BOND_UNKNOWN"
+        BondState.ERROR
     }
 }
 
-fun BluetoothDevice.getNameWithState(hidDevice: BluetoothHidDevice): String {
-    val deviceName = try {
+fun BluetoothDevice.getNameString(): String {
+    return try {
         this.name
     } catch (ex: SecurityException) {
         Log.e(null, "Failed BluetoothDevice.name: $ex")
 
-        "NAME_UNKNOWN"
+        "NAME_ERROR"
     }
+}
 
-    return "$deviceName (${this.getStateName(hidDevice)}, ${this.getBondStateName()})"
+fun BluetoothDevice.getAddressString(): String {
+    return try {
+        this.address
+    } catch (ex: SecurityException) {
+        Log.e(null, "Failed BluetoothDevice.address: $ex")
+
+        "ADDRESS_ERROR"
+    }
+}
+
+fun BluetoothDevice.toDeviceWrapper(hidDevice: BluetoothHidDevice): DeviceWrapper {
+    return toDeviceWrapper(getConnectionStateEnum(hidDevice))
+}
+
+fun BluetoothDevice.toDeviceWrapper(state: ConnectionState): DeviceWrapper {
+    return DeviceWrapper(getAddressString(), getNameString(), state, getBondStateEnum())
+}
+
+fun BluetoothDevice.toDebugString(hidDevice: BluetoothHidDevice): String {
+    return "${this.getAddressString()} (${this.getConnectionStateEnum(hidDevice).name}, ${this.getBondStateEnum().name})"
 }
 
 fun BluetoothDevice.sendKeyboardPress(hidDevice: BluetoothHidDevice, key: Byte) {

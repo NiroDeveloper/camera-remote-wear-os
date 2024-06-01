@@ -1,7 +1,9 @@
 package dev.niro.cameraremote.interfaces
 
-interface IUserInterfaceTimerCallback : IAmbientModeState {
+interface IUserInterfaceTimerCallback {
 
-    fun shouldChangeProgressIndicator(progress: Float)
+    fun changeProgressIndicatorState(progress: Float)
+
+    fun isAmbientModeActive(): Boolean
 
 }

@@ -52,12 +52,12 @@ object UserInputController {
                         val subTickProgress = subTick / tickFPS.toFloat()
                         val progress = (waitCounter + subTickProgress) / configuredTimerDelay
 
-                        uiCallback?.shouldChangeProgressIndicator(progress)
+                        uiCallback?.changeProgressIndicatorState(progress)
                     }
                 }
 
                 if (configuredTimerDelay == 0) {
-                    uiCallback?.shouldChangeProgressIndicator(1f)
+                    uiCallback?.changeProgressIndicatorState(1f)
                 }
 
                 Vibrator.shoot(context)

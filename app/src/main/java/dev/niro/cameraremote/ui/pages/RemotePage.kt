@@ -1,10 +1,9 @@
 package dev.niro.cameraremote.ui.pages
 
 import android.app.Activity
-import android.content.Context
-import android.content.Intent
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
+import androidx.annotation.WorkerThread
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -36,11 +35,7 @@ import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
 import dev.niro.cameraremote.R
 import dev.niro.cameraremote.bluetooth.BluetoothController
-import dev.niro.cameraremote.interfaces.IAmbientModeState
-import dev.niro.cameraremote.interfaces.IUserInterfaceBluetoothCallback
-import dev.niro.cameraremote.interfaces.IUserInterfaceTimerCallback
 import dev.niro.cameraremote.ui.UserInputController
-import dev.niro.cameraremote.ui.activities.ErrorActivity
 import kotlin.math.roundToInt
 
 object RemotePage {
@@ -49,33 +44,8 @@ object RemotePage {
     val modeTextDecoration = mutableStateOf(TextDecoration.None)
     val progressIndicator = mutableFloatStateOf(0f)
 
-    fun registerCallbacks(context: Context) {
-        BluetoothController.uiCallback = object : IUserInterfaceBluetoothCallback {
-            override fun onConnectionStateChanged(connected: Boolean) {
-                Log.d(null, "onConnectionStateChanged($connected)")
-
-                updateButtons()
-            }
-
-            override fun onConnectionError(message: Int) {
-                val errorIntent = Intent(context, ErrorActivity::class.java)
-                errorIntent.putExtra("messageId", message)
-                context.startActivity(errorIntent)
-            }
-        }
-
-        UserInputController.uiCallback = object : IUserInterfaceTimerCallback {
-            override fun shouldChangeProgressIndicator(progress: Float) {
-                progressIndicator.floatValue = progress
-            }
-
-            override fun isAmbientModeActive(): Boolean {
-                return context is IAmbientModeState && context.isAmbientModeActive()
-            }
-        }
-    }
-
-    fun updateButtons() {
+    @WorkerThread
+    fun updateUi() {
         triggerButtonIcon.intValue = if (!BluetoothController.isDeviceConnected()) {
             R.drawable.baseline_bluetooth_24
         } else if (UserInputController.autoTriggerEnabled) {
@@ -149,7 +119,7 @@ fun TriggerButton(permissionLauncher: ActivityResultLauncher<String>?) {
         onClick = {
             if (BluetoothController.isDeviceConnected()) {
                 UserInputController.clickTrigger(context)
-                RemotePage.updateButtons()
+                RemotePage.updateUi()
             } else {
                 permissionLauncher?.let {
                     if (context is Activity) {
@@ -181,7 +151,7 @@ fun DelayButton() {
     OutlinedButton(
         onClick = {
             UserInputController.toggleTimer()
-            RemotePage.updateButtons()
+            RemotePage.updateUi()
         },
         modifier = Modifier
             .width(50.dp)
@@ -198,7 +168,7 @@ fun ModeButton() {
     OutlinedButton(
         onClick = {
             UserInputController.toggleAutoTrigger()
-            RemotePage.updateButtons()
+            RemotePage.updateUi()
         },
         modifier = Modifier
             .width(50.dp)

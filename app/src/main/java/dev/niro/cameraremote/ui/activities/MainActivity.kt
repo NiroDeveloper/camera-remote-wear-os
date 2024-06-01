@@ -7,30 +7,35 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.wear.ambient.AmbientLifecycleObserver
 import androidx.wear.compose.material.HorizontalPageIndicator
 import androidx.wear.compose.material.PageIndicatorState
-import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
 import dev.niro.cameraremote.bluetooth.BluetoothController
+import dev.niro.cameraremote.bluetooth.DeviceWrapper
 import dev.niro.cameraremote.bluetooth.helper.BluetoothPermission
-import dev.niro.cameraremote.interfaces.IAmbientModeState
+import dev.niro.cameraremote.interfaces.IUserInterfaceBluetoothCallback
+import dev.niro.cameraremote.interfaces.IUserInterfaceTimerCallback
+import dev.niro.cameraremote.ui.UserInputController
+import dev.niro.cameraremote.ui.pages.DevicesLayout
+import dev.niro.cameraremote.ui.pages.DevicesPage
 import dev.niro.cameraremote.ui.pages.RemoteLayout
 import dev.niro.cameraremote.ui.pages.RemotePage
 import dev.niro.cameraremote.ui.pages.SettingsLayout
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecycleCallback, IAmbientModeState {
+class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecycleCallback{
 
     private val ambientObserver = AmbientLifecycleObserver(this, this)
 
@@ -42,9 +47,12 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         super.onCreate(savedInstanceState)
         lifecycle.addObserver(ambientObserver)
 
-        BluetoothController.init(this)
-        RemotePage.registerCallbacks(this)
-        RemotePage.updateButtons()
+        registerUiCallbacks()
+
+        CoroutineScope(Dispatchers.Default).launch {
+            RemotePage.updateUi()
+            BluetoothController.init(this@MainActivity)
+        }
 
         // Must be created at activity startup, otherwise the app will crash.
         val permissionLauncher = BluetoothPermission.buildPermissionLauncher(this) { permissionGranted ->
@@ -63,6 +71,39 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         }
     }
 
+    private fun registerUiCallbacks() {
+        BluetoothController.uiCallback = object : IUserInterfaceBluetoothCallback {
+            override fun onConnectionStateChange(device: DeviceWrapper) {
+                Log.d(null, "onConnectionStateChange($device)")
+
+                RemotePage.updateUi()
+                DevicesPage.updateDevice(device)
+            }
+
+            override fun onServiceError(message: Int) {
+                val errorIntent = Intent(this@MainActivity, ErrorActivity::class.java)
+                errorIntent.putExtra("messageId", message)
+                startActivity(errorIntent)
+            }
+
+            override fun onServiceStateChange(available: Boolean) {
+                Log.d(null, "onServiceStateChange($available)")
+
+                RemotePage.updateUi()
+            }
+        }
+
+        UserInputController.uiCallback = object : IUserInterfaceTimerCallback {
+            override fun changeProgressIndicatorState(progress: Float) {
+                RemotePage.progressIndicator.floatValue = progress
+            }
+
+            override fun isAmbientModeActive(): Boolean {
+                return isInAmbientMode
+            }
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         lifecycle.removeObserver(ambientObserver)
@@ -78,9 +119,6 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         isInAmbientMode = false
     }
 
-    override fun isAmbientModeActive(): Boolean {
-        return isInAmbientMode
-    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -95,7 +133,7 @@ fun MainActivityLayout(permissionLauncher: ActivityResultLauncher<String>? = nul
     HorizontalPager(state = pagerState) {page ->
         when(page) {
             0 -> RemoteLayout(permissionLauncher)
-            1 -> Text(text = "Devices List", modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
+            1 -> DevicesLayout()
             2 -> SettingsLayout()
         }
     }

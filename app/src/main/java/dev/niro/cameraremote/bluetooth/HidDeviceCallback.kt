@@ -2,34 +2,23 @@ package dev.niro.cameraremote.bluetooth
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
-import android.bluetooth.BluetoothProfile
 import android.util.Log
-import dev.niro.cameraremote.interfaces.IAppStateCallback
+import dev.niro.cameraremote.bluetooth.enums.ConnectionState
 import dev.niro.cameraremote.interfaces.IConnectionStateCallback
+import dev.niro.cameraremote.interfaces.IServiceStateCallback
 
 class HidDeviceCallback(
     private val hidDevice: BluetoothHidDevice,
     private val connectionStateListener: IConnectionStateCallback,
-    private val appStateListener: IAppStateCallback
+    private val serviceStateListener: IServiceStateCallback
 ) : BluetoothHidDevice.Callback() {
-
-    var appRegistered = false
-        private set
 
     override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
         super.onAppStatusChanged(pluggedDevice, registered)
 
         Log.d(null, "onAppStatusChanged($pluggedDevice, $registered)")
 
-        if (appRegistered == registered) {
-            val variableInfo = "registered=$registered, appRegistered=$appRegistered"
-            Log.d(null, "App state of $pluggedDevice changed, but it is not relevant: $variableInfo")
-
-            return
-        }
-
-        appRegistered = registered
-        appStateListener.onAppStateChanged(registered)
+        serviceStateListener.onServiceStateChange(registered)
     }
 
     override fun onConnectionStateChanged(device: BluetoothDevice?, state: Int) {
@@ -41,9 +30,7 @@ class HidDeviceCallback(
             return
         }
 
-        val connected = state == BluetoothProfile.STATE_CONNECTED
-
-        connectionStateListener.onConnectionStateChanged(connected)
+        connectionStateListener.onConnectionStateChange(device, ConnectionState.fromBluetoothProfile(state))
     }
 
     override fun onGetReport(device: BluetoothDevice?, type: Byte, id: Byte, bufferSize: Int) {
