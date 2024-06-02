@@ -48,10 +48,22 @@ class BluetoothServiceCallback(
 
         hidDevice = proxy
         hidCallback = registerApp(proxy)
+
+        startRadarThread()
     }
 
     override fun onServiceDisconnected(profile: Int) {
         Log.d(null, "onServiceDisconnected($profile)")
+
+        destroy()
+    }
+
+    fun destroy() {
+        try {
+            hidDevice?.unregisterApp()
+        } catch (ex: SecurityException) {
+            Log.wtf(null, "Failed calling BluetoothHidDevice.unregisterApp(): $ex")
+        }
 
         hidDevice = null
         hidCallback = null
@@ -67,8 +79,6 @@ class BluetoothServiceCallback(
 
                 if (available) {
                     startAutoConnect()
-
-                    startRadarThread()
                 }
 
                 serviceStateListener.onServiceStateChange(available)
@@ -132,7 +142,8 @@ class BluetoothServiceCallback(
                 Thread.sleep(sleepDelay)
             }
         }
-        thread.name = "Radar"
+        thread.isDaemon = true
+        thread.name = "Bluetooth Device Radar"
         thread.priority = Thread.MIN_PRIORITY
         thread.start()
     }
