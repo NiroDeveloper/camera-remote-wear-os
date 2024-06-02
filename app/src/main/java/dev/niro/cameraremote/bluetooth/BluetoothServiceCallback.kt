@@ -88,6 +88,7 @@ class BluetoothServiceCallback(
         val newHidCallback = HidDeviceCallback(registerHidDevice, serviceStateListener, serviceStateListener)
 
         try {
+            // Somehow always returns false (unsuccessful).
             registerHidDevice.registerApp(
                 BluetoothConstants.SPD_RECORD,
                 null,
@@ -127,7 +128,7 @@ class BluetoothServiceCallback(
                     radarDeviceRegister[deviceAddress] = newConnectionState
                 }
 
-                val sleepDelay = if (radarDeviceRegister.isEmpty()) 1_000L else 10_000L
+                val sleepDelay = if (isDeviceConnected()) 10_000L else 1_000L
                 Thread.sleep(sleepDelay)
             }
         }
