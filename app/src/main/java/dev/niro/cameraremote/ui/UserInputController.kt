@@ -3,11 +3,11 @@ package dev.niro.cameraremote.ui
 import android.content.Context
 import dev.niro.cameraremote.bluetooth.BluetoothController
 import dev.niro.cameraremote.interfaces.IUserInterfaceTimerCallback
+import dev.niro.cameraremote.utils.Clock
 import dev.niro.cameraremote.utils.Vibrator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 object UserInputController {
@@ -35,36 +35,40 @@ object UserInputController {
         }
 
         triggerCoroutine = CoroutineScope(Dispatchers.Default).launch {
-            var firstPicture = true
+            Vibrator.tick(context)
+
             do {
-                val configuredTimerDelay = timerDelay
-
-                for (waitCounter in 0..<configuredTimerDelay) {
-                    if (firstPicture || waitCounter > 0) {
-                        Vibrator.tick(context)
-                    }
-
-                    val tickFPS = if (uiCallback?.isAmbientModeActive() == true) { 1 } else { 40 }
-
-                    for (subTick in 1..tickFPS) {
-                        delay(1000L / tickFPS)
-
-                        val subTickProgress = subTick / tickFPS.toFloat()
-                        val progress = (waitCounter + subTickProgress) / configuredTimerDelay
-
-                        uiCallback?.changeProgressIndicatorState(progress)
-                    }
-                }
-
-                if (configuredTimerDelay == 0) {
-                    uiCallback?.changeProgressIndicatorState(1f)
-                }
-
-                Vibrator.shoot(context)
-                BluetoothController.takePicture()
-                firstPicture = false
+                runTimerProcess(context)
             } while (autoTriggerEnabled)
         }
+    }
+
+    private suspend fun runTimerProcess(context: Context) {
+        val configuredTimerDelay = timerDelay
+
+        for (waitCounter in 0..<configuredTimerDelay) {
+            if (waitCounter > 0) {
+                Vibrator.tick(context)
+            }
+
+            val uiFPS = if (uiCallback?.isAmbientModeActive() == false) { 40 } else { 1 }
+
+            for (subTick in 1..uiFPS) {
+                Clock.sleep(1000L / uiFPS)
+
+                val subTickProgress = subTick / uiFPS.toFloat()
+                val progress = (waitCounter + subTickProgress) / configuredTimerDelay
+
+                uiCallback?.changeProgressIndicatorState(progress)
+            }
+        }
+
+        if (configuredTimerDelay == 0) {
+            uiCallback?.changeProgressIndicatorState(1f)
+        }
+
+        Vibrator.shoot(context)
+        BluetoothController.takePicture()
     }
 
     fun toggleTimer() {
