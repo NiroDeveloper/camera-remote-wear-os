@@ -62,6 +62,8 @@ object BluetoothController {
 
             Log.i(null, "Destroyed bluetooth service")
         }
+
+        bluetoothCallback = null
     }
 
     @WorkerThread
