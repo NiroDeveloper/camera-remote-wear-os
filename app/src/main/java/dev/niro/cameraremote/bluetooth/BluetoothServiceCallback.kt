@@ -172,8 +172,10 @@ class BluetoothServiceCallback(
         val devices = getDevices(BluetoothProfile.STATE_DISCONNECTED)
 
         if (devices.isEmpty()) {
+            val allDevices = getDevices()
+
             // If all devices are in the disconnecting state, show an error.
-            if (getDevices(BluetoothProfile.STATE_DISCONNECTING).size == getDevices().size) {
+            if (allDevices.isNotEmpty() && getDevices(BluetoothProfile.STATE_DISCONNECTING).size == allDevices.size) {
                 Log.e(null, "All devices are disconnecting, seems like the app unregistered silently")
                 serviceStateListener.onServiceError(R.string.error_app_register)
 
