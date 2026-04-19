@@ -1,16 +1,17 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.composeCompiler)
 }
 
 android {
     namespace = "dev.niro.cameraremote"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "dev.niro.cameraremote"
         minSdk = 28
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 3
         versionName = "1.0.2"
         vectorDrawables {
