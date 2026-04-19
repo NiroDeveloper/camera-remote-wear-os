@@ -7,6 +7,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -19,6 +21,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.wear.ambient.AmbientLifecycleObserver
 import androidx.wear.compose.material.HorizontalPageIndicator
 import androidx.wear.compose.material.PageIndicatorState
+import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
 import dev.niro.cameraremote.bluetooth.BluetoothController
 import dev.niro.cameraremote.bluetooth.DeviceWrapper
@@ -132,24 +135,34 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
 fun MainActivityLayout(permissionLauncher: ActivityResultLauncher<String>? = null) {
     val pagerState = rememberPagerState { 3 }
 
-    HorizontalPager(state = pagerState) {page ->
-        when(page) {
-            0 -> RemoteLayout(permissionLauncher)
-            1 -> DevicesLayout()
-            2 -> SettingsLayout()
-        }
-    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        TimeText()
 
-    val pageIndicatorState: PageIndicatorState = remember {
-        object : PageIndicatorState {
-            override val pageOffset: Float
-                get() = 0f
-            override val selectedPage: Int
-                get() = pagerState.currentPage
-            override val pageCount: Int
-                get() = pagerState.pageCount
+        HorizontalPager(
+            state = pagerState,
+            beyondViewportPageCount = 1
+        ) { page ->
+            when (page) {
+                0 -> RemoteLayout(permissionLauncher)
+                1 -> DevicesLayout()
+                2 -> SettingsLayout()
+            }
         }
-    }
 
-    HorizontalPageIndicator(pageIndicatorState = pageIndicatorState, modifier = Modifier.padding(12.dp))
+        val pageIndicatorState: PageIndicatorState = remember {
+            object : PageIndicatorState {
+                override val pageOffset: Float
+                    get() = 0f
+                override val selectedPage: Int
+                    get() = pagerState.currentPage
+                override val pageCount: Int
+                    get() = pagerState.pageCount
+            }
+        }
+
+        HorizontalPageIndicator(
+            pageIndicatorState = pageIndicatorState,
+            modifier = Modifier.padding(12.dp)
+        )
+    }
 }

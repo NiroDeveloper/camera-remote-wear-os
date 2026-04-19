@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.WorkerThread
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -31,12 +31,10 @@ import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.OutlinedButton
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
 import dev.niro.cameraremote.R
 import dev.niro.cameraremote.bluetooth.BluetoothController
 import dev.niro.cameraremote.ui.UserInputController
-import kotlin.math.roundToInt
 
 object RemotePage {
     val triggerButtonIcon = mutableIntStateOf(R.drawable.baseline_linked_camera_24)
@@ -72,27 +70,16 @@ object RemotePage {
 @Composable
 fun RemoteLayout(permissionLauncher: ActivityResultLauncher<String>? = null) {
     val context = LocalContext.current
-    val localProgressIndicator by RemotePage.progressIndicator
 
-    BoxWithConstraints {
-        TimeText()
-
+    Box(modifier = Modifier.fillMaxSize()) {
         if (context.resources.configuration.isScreenRound) {
-            CircularProgressIndicator(
-                modifier = Modifier.fillMaxSize(),
-                startAngle = 300f,
-                endAngle = 240f,
-                progress = localProgressIndicator
-            )
+            ProgressWrapper()
         }
-
-        val horizontalPadding = (maxWidth.value * 0.1).roundToInt()
-        val verticalPadding = (maxHeight.value * 0.1).roundToInt()
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontalPadding.dp, verticalPadding.dp),
+                .padding(16.dp),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -108,6 +95,17 @@ fun RemoteLayout(permissionLauncher: ActivityResultLauncher<String>? = null) {
             }
         }
     }
+}
+
+@Composable
+fun ProgressWrapper() {
+    val progress by RemotePage.progressIndicator
+    CircularProgressIndicator(
+        modifier = Modifier.fillMaxSize(),
+        startAngle = 300f,
+        endAngle = 240f,
+        progress = progress
+    )
 }
 
 @Composable

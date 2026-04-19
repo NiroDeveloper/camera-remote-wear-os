@@ -120,7 +120,9 @@ fun SettingsLayout() {
 
         item {
             val currentTriggerKeyId by remember { SettingsPage.triggerKey }
-            val currentTriggerKey = TriggerKey.fromKeyCode(currentTriggerKeyId.toByte())
+            val currentTriggerKey = remember(currentTriggerKeyId) { 
+                TriggerKey.fromKeyCode(currentTriggerKeyId.toByte()) 
+            }
 
             Chip(
                 onClick = { showTriggerKeySelection = true },

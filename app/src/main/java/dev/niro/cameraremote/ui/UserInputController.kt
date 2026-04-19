@@ -4,11 +4,11 @@ import android.content.Context
 import dev.niro.cameraremote.bluetooth.BluetoothController
 import dev.niro.cameraremote.bluetooth.enums.TriggerKey
 import dev.niro.cameraremote.interfaces.IUserInterfaceTimerCallback
-import dev.niro.cameraremote.utils.Clock
 import dev.niro.cameraremote.utils.Vibrator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 object UserInputController {
@@ -54,10 +54,10 @@ object UserInputController {
                 Vibrator.tick(context)
             }
 
-            val uiFPS = if (uiCallback?.isAmbientModeActive() == false) { 40 } else { 1 }
+            val uiFPS = if (uiCallback?.isAmbientModeActive() == false) { 30 } else { 1 }
 
             for (subTick in 1..uiFPS) {
-                Clock.sleep(1000L / uiFPS)
+                delay(1000L / uiFPS)
 
                 val subTickProgress = subTick / uiFPS.toFloat()
                 val progress = (waitCounter + subTickProgress) / configuredTimerDelay
