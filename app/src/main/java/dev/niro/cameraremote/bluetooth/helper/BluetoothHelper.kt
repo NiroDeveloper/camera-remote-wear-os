@@ -61,19 +61,35 @@ fun BluetoothDevice.toDebugString(hidDevice: BluetoothHidDevice): String {
     return "${this.getAddressString()} (${this.getConnectionStateEnum(hidDevice).name}, ${this.getBondStateEnum().name})"
 }
 
-fun BluetoothDevice.sendKeyboardPress(hidDevice: BluetoothHidDevice, key: Byte) {
+fun BluetoothDevice.sendKeyboardPress(hidDevice: BluetoothHidDevice, triggerKey: dev.niro.cameraremote.bluetooth.enums.TriggerKey) {
     try {
-        hidDevice.sendReport(
-            this,
-            BluetoothConstants.ID_KEYBOARD.toInt(),
-            byteArrayOf(0x0, 0x0, key)
-        )
+        val reportId = if (triggerKey == dev.niro.cameraremote.bluetooth.enums.TriggerKey.VOLUME_UP || 
+            triggerKey == dev.niro.cameraremote.bluetooth.enums.TriggerKey.VOLUME_DOWN) {
+            BluetoothConstants.ID_CONSUMER
+        } else {
+            BluetoothConstants.ID_KEYBOARD
+        }
 
-        hidDevice.sendReport(
-            this,
-            BluetoothConstants.ID_KEYBOARD.toInt(),
+        val reportData = if (reportId == BluetoothConstants.ID_CONSUMER) {
+            if (triggerKey == dev.niro.cameraremote.bluetooth.enums.TriggerKey.VOLUME_UP) {
+                byteArrayOf(0xE9.toByte(), 0x00.toByte())
+            } else {
+                byteArrayOf(0xEA.toByte(), 0x00.toByte())
+            }
+        } else {
+            byteArrayOf(0x0, 0x0, triggerKey.keyCode)
+        }
+
+        hidDevice.sendReport(this, reportId.toInt(), reportData)
+
+        // Release
+        val releaseData = if (reportId == BluetoothConstants.ID_CONSUMER) {
+            byteArrayOf(0x00, 0x00)
+        } else {
             byteArrayOf(0x0, 0x0, 0x0)
-        )
+        }
+        hidDevice.sendReport(this, reportId.toInt(), releaseData)
+
     } catch (ex: SecurityException) {
         Log.wtf(null, "Failed sending device input: $ex")
     }

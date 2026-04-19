@@ -88,8 +88,9 @@ object BluetoothController {
         }
 
         try {
+            val triggerKey = dev.niro.cameraremote.ui.UserInputController.triggerKey
             callback.getDevices(BluetoothProfile.STATE_CONNECTED).forEach { bluetoothDevice ->
-                bluetoothDevice.sendKeyboardPress(localHidDevice, 40.toByte())
+                bluetoothDevice.sendKeyboardPress(localHidDevice, triggerKey)
 
                 Log.i(null, "Sent report signal to device: ${bluetoothDevice.name}")
             }

@@ -2,6 +2,7 @@ package dev.niro.cameraremote.ui
 
 import android.content.Context
 import dev.niro.cameraremote.bluetooth.BluetoothController
+import dev.niro.cameraremote.bluetooth.enums.TriggerKey
 import dev.niro.cameraremote.interfaces.IUserInterfaceTimerCallback
 import dev.niro.cameraremote.utils.Clock
 import dev.niro.cameraremote.utils.Vibrator
@@ -14,6 +15,8 @@ object UserInputController {
 
     var timerDelay = 0
         private set
+    var triggerKey: TriggerKey = TriggerKey.ENTER
+    var vibrationEnabled = true
     var autoTriggerEnabled = false
         private set
     var autoTriggerActive = false

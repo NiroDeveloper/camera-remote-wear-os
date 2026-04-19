@@ -5,13 +5,13 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.VibratorManager
 import androidx.annotation.WorkerThread
-import dev.niro.cameraremote.ui.pages.SettingsPage
+import dev.niro.cameraremote.ui.UserInputController
 
 object Vibrator {
 
     @WorkerThread
     fun tick(context: Context) {
-        if (!SettingsPage.vibrationEnabled.value) {
+        if (!UserInputController.vibrationEnabled) {
             return
         }
 
@@ -20,7 +20,7 @@ object Vibrator {
 
     @WorkerThread
     fun shoot(context: Context) {
-        if (!SettingsPage.vibrationEnabled.value) {
+        if (!UserInputController.vibrationEnabled) {
             return
         }
         getVibrator(context).vibrate(VibrationEffect.createOneShot(80, 255))

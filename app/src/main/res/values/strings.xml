@@ -11,6 +11,11 @@
     <string name="error_bluetooth_permission_denied">You have rejected the Bluetooth permission too often.\n\nIf you want to use the app, you must now activate Bluetooth permission for this app in the device settings.</string>
     <string name="settings">Settings</string>
     <string name="vibration">Vibration</string>
+    <string name="trigger_key">Trigger Key</string>
+    <string name="trigger_key_enter">Enter / Shutter</string>
+    <string name="trigger_key_volume_up">Volume Up</string>
+    <string name="trigger_key_volume_down">Volume Down</string>
+    <string name="trigger_key_space">Space</string>
     <string name="devices">Devices</string>
     <string name="devices_open_bluetooth_settings">Open bluetooth settings</string>
     <string name="devices_connect_more">Connect more</string>

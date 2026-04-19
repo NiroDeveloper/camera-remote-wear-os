@@ -11,6 +11,11 @@
     <string name="error_bluetooth_permission_denied">Sie haben die Bluetooth Berechtigung zu oft abgeleht.\n\nWenn Sie die App verwenden möchten, müssen Sie nun die Bluetooth Berechtigung in den Geräte Einstellungen für diese App aktivieren.</string>
     <string name="settings">Einstellungen</string>
     <string name="vibration">Vibration</string>
+    <string name="trigger_key">Auslöser-Taste</string>
+    <string name="trigger_key_enter">Enter / Auslöser</string>
+    <string name="trigger_key_volume_up">Lauter</string>
+    <string name="trigger_key_volume_down">Leiser</string>
+    <string name="trigger_key_space">Leertaste</string>
     <string name="devices">Geräte</string>
     <string name="devices_open_bluetooth_settings">Bluetooth Einstellungen öffnen</string>
     <string name="devices_connect_more">Mehr verbinden</string>
