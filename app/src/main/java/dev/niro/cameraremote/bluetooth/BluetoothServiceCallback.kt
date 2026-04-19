@@ -1,5 +1,6 @@
 package dev.niro.cameraremote.bluetooth
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
 import android.bluetooth.BluetoothProfile
@@ -12,8 +13,10 @@ import dev.niro.cameraremote.bluetooth.helper.getConnectionStateEnum
 import dev.niro.cameraremote.bluetooth.helper.toDebugString
 import dev.niro.cameraremote.interfaces.IConnectionStateCallback
 import dev.niro.cameraremote.interfaces.IServiceStateCallback
+import java.util.concurrent.ConcurrentHashMap
 
 class BluetoothServiceCallback(
+    private val adapter: BluetoothAdapter,
     private val connectionStateListener: IConnectionStateCallback,
     private val serviceStateListener: IServiceStateCallback
 ) : BluetoothProfile.ServiceListener {
@@ -26,7 +29,8 @@ class BluetoothServiceCallback(
     var appRegistered = false
         private set
 
-    private val radarDeviceRegister = mutableMapOf<String, ConnectionState>()
+    private val radarDeviceRegister = ConcurrentHashMap<String, ConnectionState>()
+    private var isDestroyed = false
 
     override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
         Log.d(null, "onServiceConnected($profile, $proxy)")
@@ -59,6 +63,7 @@ class BluetoothServiceCallback(
     }
 
     fun destroy() {
+        isDestroyed = true
         try {
             hidDevice?.unregisterApp()
         } catch (ex: SecurityException) {
@@ -73,7 +78,7 @@ class BluetoothServiceCallback(
     }
 
     private fun registerApp(registerHidDevice: BluetoothHidDevice): HidDeviceCallback {
-        val serviceStateListener = object : IServiceStateCallback, IConnectionStateCallback {
+        val internalCallback = object : IServiceStateCallback, IConnectionStateCallback {
             override fun onServiceStateChange(available: Boolean) {
                 appRegistered = available
 
@@ -95,11 +100,15 @@ class BluetoothServiceCallback(
             }
         }
 
-        val newHidCallback = HidDeviceCallback(registerHidDevice, serviceStateListener, serviceStateListener)
+        val newHidCallback = HidDeviceCallback(registerHidDevice, internalCallback, internalCallback)
 
         try {
-            // Somehow always returns false (unsuccessful).
-            registerHidDevice.registerApp(
+            // Unregister first to ensure a clean state if it was left hanging
+            try {
+                registerHidDevice.unregisterApp()
+            } catch (e: Exception) {}
+
+            val success = registerHidDevice.registerApp(
                 BluetoothConstants.SPD_RECORD,
                 null,
                 BluetoothConstants.QOS_OUT,
@@ -107,7 +116,11 @@ class BluetoothServiceCallback(
                 newHidCallback
             )
 
-            Log.i(null, "Called BluetoothHidDevice.registerApp")
+            Log.i(null, "Called BluetoothHidDevice.registerApp, result: $success")
+            
+            if (!success) {
+                serviceStateListener.onServiceError(R.string.error_app_register)
+            }
         } catch (ex: SecurityException) {
             Log.wtf(null, "Failed app registration: $ex")
         }
@@ -119,8 +132,8 @@ class BluetoothServiceCallback(
         val thread = Thread {
             Log.i(null, "Starting radar thread")
 
-            while (true) {
-                val localHidDevice = hidDevice ?: return@Thread
+            while (!isDestroyed) {
+                val localHidDevice = hidDevice ?: break
                 val newDeviceList = getDevices()
 
                 for (device in newDeviceList) {
@@ -172,16 +185,6 @@ class BluetoothServiceCallback(
         val devices = getDevices(BluetoothProfile.STATE_DISCONNECTED)
 
         if (devices.isEmpty()) {
-            val allDevices = getDevices()
-
-            // If all devices are in the disconnecting state, show an error.
-            if (allDevices.isNotEmpty() && getDevices(BluetoothProfile.STATE_DISCONNECTING).size == allDevices.size) {
-                Log.e(null, "All devices are disconnecting, seems like the app unregistered silently")
-                serviceStateListener.onServiceError(R.string.error_app_register)
-
-                return
-            }
-
             Log.e(null, "No devices found")
             serviceStateListener.onServiceError(R.string.error_no_devices_found)
 
@@ -201,18 +204,30 @@ class BluetoothServiceCallback(
 
     fun isDeviceConnected() = getDevices(BluetoothProfile.STATE_CONNECTED).isNotEmpty()
 
+    fun reRegisterApp() {
+        val localHidDevice = hidDevice ?: return
+        hidCallback = registerApp(localHidDevice)
+    }
+
     fun getDevices(
         vararg states: Int = intArrayOf(
             BluetoothProfile.STATE_DISCONNECTED,
-            BluetoothProfile.STATE_DISCONNECTING,
+            BluetoothProfile.STATE_CONNECTING,
             BluetoothProfile.STATE_CONNECTED,
             BluetoothProfile.STATE_DISCONNECTING
         )
     ): List<BluetoothDevice> {
         try {
-            hidDevice?.let {
-                return it.getDevicesMatchingConnectionStates(states)
+            val hidDevices = hidDevice?.getDevicesMatchingConnectionStates(states) ?: listOf()
+            
+            // If we are looking for DISCONNECTED devices, we include bonded devices as a fallback.
+            // BluetoothHidDevice often doesn't show devices that are paired but not yet HID-active.
+            if (states.contains(BluetoothProfile.STATE_DISCONNECTED)) {
+                val bondedDevices = adapter.bondedDevices ?: return hidDevices
+                return (hidDevices + bondedDevices).distinctBy { it.address }
             }
+
+            return hidDevices
         } catch (ex: SecurityException) {
             Log.wtf(null, "Failed receiving devices: $ex")
         }
