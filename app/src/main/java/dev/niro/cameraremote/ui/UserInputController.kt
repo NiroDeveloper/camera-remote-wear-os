@@ -1,6 +1,7 @@
 package dev.niro.cameraremote.ui
 
 import android.content.Context
+import android.os.PowerManager
 import dev.niro.cameraremote.bluetooth.BluetoothController
 import dev.niro.cameraremote.bluetooth.enums.TriggerKey
 import dev.niro.cameraremote.interfaces.IUserInterfaceTimerCallback
@@ -23,6 +24,7 @@ object UserInputController {
         private set
 
     private var triggerCoroutine: Job? = null
+    private var wakeLock: PowerManager.WakeLock? = null
 
     var uiCallback: IUserInterfaceTimerCallback? = null
 
@@ -33,16 +35,39 @@ object UserInputController {
             autoTriggerActive = !autoTriggerActive
 
             if (!autoTriggerActive) {
+                releaseWakeLock()
                 return
             }
         }
 
-        triggerCoroutine = CoroutineScope(Dispatchers.Default).launch {
-            Vibrator.tick(context)
+        acquireWakeLock(context)
 
-            do {
-                runTimerProcess(context)
-            } while (autoTriggerEnabled)
+        triggerCoroutine = CoroutineScope(Dispatchers.Default).launch {
+            try {
+                Vibrator.tick(context)
+
+                do {
+                    runTimerProcess(context)
+                } while (autoTriggerEnabled)
+            } finally {
+                releaseWakeLock()
+            }
+        }
+    }
+
+    private fun acquireWakeLock(context: Context) {
+        if (wakeLock == null) {
+            val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CameraRemote:TimerLock")
+        }
+        if (wakeLock?.isHeld == false) {
+            wakeLock?.acquire(10 * 60 * 1000L)
+        }
+    }
+
+    private fun releaseWakeLock() {
+        if (wakeLock?.isHeld == true) {
+            wakeLock?.release()
         }
     }
 

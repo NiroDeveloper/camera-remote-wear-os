@@ -12,8 +12,8 @@ android {
         applicationId = "dev.niro.cameraremote"
         minSdk = 28
         targetSdk = 35
-        versionCode = 7
-        versionName = "2.1.1"
+        versionCode = 8
+        versionName = "2.2.0"
         vectorDrawables {
             useSupportLibrary = true
         }
