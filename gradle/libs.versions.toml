@@ -1,17 +1,20 @@
 [versions]
-agp = "8.7.3"
-kotlin = "2.1.0"
-playServicesWearable = "19.0.0"
-composeBom = "2024.12.01"
-composeMaterial = "1.4.1"
-composeFoundation = "1.4.1"
+agp = "9.1.1"
+kotlin = "2.4.10"
+playServicesWearable = "20.0.1"
+composeBom = "2026.06.01"
+composeMaterial = "1.6.2"
+composeFoundation = "1.6.2"
 coreSplashscreen = "1.2.0"
 wearToolingPreview = "1.0.0"
-kotlinxCoroutinesAndroid = "1.10.1"
-activityCompose = "1.10.0"
-fragment = "1.8.5"
+kotlinxCoroutinesAndroid = "1.11.0"
+activityCompose = "1.13.0"
+fragment = "1.8.9"
 wear = "1.4.0"
 datastorePreferences = "1.2.1"
+compileSdk = "37"
+targetSdk = "37"
+minSdk = "28"
 
 [libraries]
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
@@ -33,6 +36,4 @@ datastore-preferences = { group = "androidx.datastore", name = "datastore-prefer
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
-jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
