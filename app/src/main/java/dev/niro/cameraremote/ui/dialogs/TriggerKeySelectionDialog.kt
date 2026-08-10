@@ -10,7 +10,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.ListHeader
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.RadioButton
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.ToggleChip
@@ -34,8 +36,11 @@ fun TriggerKeySelectionDialog(
         showDialog = showDialog,
         onDismissRequest = onDismiss
     ) {
+        val listState = rememberScalingLazyListState()
+
         ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            state = listState
         ) {
             item {
                 ListHeader {
@@ -70,5 +75,7 @@ fun TriggerKeySelectionDialog(
                 }
             }
         }
+
+        PositionIndicator(scalingLazyListState = listState)
     }
 }
